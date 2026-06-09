@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Agenda — SharePoint Setup</title>
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<style>
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;padding:20px;max-width:700px;margin:0 auto;}
+h1{font-size:18px;color:#1a5fa8;margin-bottom:16px;}
+button{padding:8px 16px;background:#1a5fa8;color:white;border:none;border-radius:5px;cursor:pointer;font-size:12px;margin:4px;}
+button:hover{background:#1550a0;}
+button.secondary{background:#fff;color:#333;border:1px solid #ccc;}
+button.secondary:hover{background:#f5f5f5;}
+.log{background:#f5f5f5;border:1px solid #ddd;border-radius:5px;padding:12px;margin-top:16px;font-family:monospace;font-size:11px;max-height:300px;overflow-y:auto;white-space:pre-wrap;}
+.ok{color:#1e7e34;} .err{color:#c0392b;} .info{color:#666;}
+input{width:100%;padding:6px 10px;border:1px solid #ccc;border-radius:5px;font-size:12px;margin-bottom:8px;box-sizing:border-box;}
+label{font-size:11px;color:#666;display:block;margin-bottom:2px;}
+.field-group{margin-bottom:12px;}
+</style>
+</head>
+<body>
+<h1>🛠 SharePoint Setup — Schoolagenda</h1>
+<p style="color:#666;font-size:12px;margin-bottom:16px;">Dit script maakt de 6 SharePoint-lijsten aan voor de agenda-app. Voer dit éénmalig uit als beheerder.</p>
+
+<div class="field-group"><label>Client ID</label><input id="clientId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></div>
+<div class="field-group"><label>Tenant ID</label><input id="tenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></div>
+<div class="field-group"><label>SharePoint Site URL</label><input id="siteUrl" placeholder="https://tenant.sharepoint.com/sites/naam"></div>
+
+<button onclick="doSetup()">▶ Lijsten aanmaken</button>
+<button class="secondary" onclick="doCheck()">🔍 Bestaande lijsten controleren</button>
+<div class="log" id="log">Wacht op invoer…</div>
+
+<script>
+let msalApp, token, siteId;
+
+function log(msg, cls='info'){
+  const el=document.getElementById('log');
+  el.innerHTML += '<span class="'+cls+'">'+msg+'</span>\n';
+  el.scrollTop=el.scrollHeight;
+}
+
+async function initMsal(){
+  const clientId=document.getElementById('clientId').value.trim();
+  const tenantId=document.getElementById('tenantId').value.trim();
+  if(!clientId||!tenantId){alert('Vul Client ID en Tenant ID in');return false;}
+  msalApp=new msal.PublicClientApplication({
+    auth:{clientId,authority:'https://login.microsoftonline.com/'+tenantId,redirectUri:window.location.href},
+    cache:{cacheLocation:'sessionStorage'}
+  });
+  await msalApp.initialize();
+  const resp=await msalApp.handleRedirectPromise();
+  let account=resp?resp.account:msalApp.getAllAccounts()[0];
+  if(!account){await msalApp.loginRedirect({scopes:['https://graph.microsoft.com/Sites.ReadWrite.All']});return false;}
+  try{token=(await msalApp.acquireTokenSilent({scopes:['https://graph.microsoft.com/Sites.ReadWrite.All'],account})).accessToken;}
+  catch{await msalApp.acquireTokenRedirect({scopes:['https://graph.microsoft.com/Sites.ReadWrite.All']});return false;}
+  return true;
+}
+
+async function getSiteId(){
+  const siteUrl=document.getElementById('siteUrl').value.trim();
+  const host=siteUrl.replace('https://','').split('/')[0];
+  const path=siteUrl.split(host)[1];
+  const r=await fetch('https://graph.microsoft.com/v1.0/sites/'+host+':'+path,{headers:{Authorization:'Bearer '+token}});
+  if(!r.ok){log('❌ Site niet gevonden: '+siteUrl,'err');return null;}
+  siteId=(await r.json()).id;
+  log('✓ Site gevonden: '+siteId,'ok');
+  return siteId;
+}
+
+async function createList(dk){
+  const name='AgendaDK'+dk;
+  log('→ Aanmaken: '+name+'…');
+  const r=await fetch('https://graph.microsoft.com/v1.0/sites/'+siteId+'/lists',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+    body:JSON.stringify({displayName:name,list:{template:'genericList'},columns:[
+      {name:'Klas',text:{}},
+      {name:'DagData',text:{allowMultipleLines:true,linesForEditing:20}},
+      {name:'WeekStart',dateTime:{format:'dateOnly'}},
+      {name:'LaatsteWijziging',dateTime:{format:'dateTimeWithSeconds'}}
+    ]})
+  });
+  if(r.ok){log('  ✓ '+name+' aangemaakt','ok');}
+  else{const e=await r.json();log('  ❌ '+name+': '+(e.error&&e.error.message||'onbekende fout'),'err');}
+}
+
+async function doSetup(){
+  document.getElementById('log').innerHTML='';
+  if(!await initMsal())return;
+  if(!await getSiteId())return;
+  log('\nLijsten aanmaken (DK1–DK6)…');
+  for(let dk=1;dk<=6;dk++) await createList(dk);
+  log('\n✅ Setup voltooid. Kopieer de Client/Tenant ID naar index.html.','ok');
+}
+
+async function doCheck(){
+  document.getElementById('log').innerHTML='';
+  if(!await initMsal())return;
+  if(!await getSiteId())return;
+  log('\nBestaande lijsten controleren…');
+  for(let dk=1;dk<=6;dk++){
+    const name='AgendaDK'+dk;
+    const r=await fetch('https://graph.microsoft.com/v1.0/sites/'+siteId+'/lists?$filter=displayName eq \''+name+'\'',{headers:{Authorization:'Bearer '+token}});
+    const d=await r.json();
+    if(d.value&&d.value[0]) log('  ✓ '+name+' bestaat (id: '+d.value[0].id+')','ok');
+    else log('  — '+name+' niet gevonden','err');
+  }
+}
+</script>
+</body>
+</html>
