@@ -238,29 +238,41 @@ const DSHORT=['MA','DI','WO','DO','VR'];
 // ═══════════════════════════════════════════
 // MSAL
 // ═══════════════════════════════════════════
+// msal-browser.min.js exposeert de klasse als window.msal.PublicClientApplication
+// Gebruik een aparte variabelenaam zodat de globale namespace niet overschreven wordt
+const _MsalClass = (window.msal && window.msal.PublicClientApplication)
+  ? window.msal.PublicClientApplication
+  : (window.msalBrowser ? window.msalBrowser.PublicClientApplication : null);
+
 const msalConfig = {
-  auth: { clientId: CONFIG.clientId, authority: 'https://login.microsoftonline.com/' + CONFIG.tenantId, redirectUri: window.location.origin + window.location.pathname },
-  cache: { cacheLocation: 'sessionStorage' }
+  auth: {
+    clientId: CONFIG.clientId,
+    authority: 'https://login.microsoftonline.com/' + CONFIG.tenantId,
+    redirectUri: window.location.origin + window.location.pathname
+  },
+  cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
 };
-const msal = new msal.PublicClientApplication(msalConfig);
+const msalApp = _MsalClass ? new _MsalClass(msalConfig) : null;
 const SCOPES = ['https://graph.microsoft.com/Sites.ReadWrite.All'];
 let currentAccount = null;
 
 async function msalInit() {
-  await msal.initialize();
-  const resp = await msal.handleRedirectPromise();
+  if (!msalApp) { console.error('MSAL niet geladen'); return; }
+  await msalApp.initialize();
+  const resp = await msalApp.handleRedirectPromise();
   if (resp) currentAccount = resp.account;
   else {
-    const accounts = msal.getAllAccounts();
+    const accounts = msalApp.getAllAccounts();
     if (accounts.length) currentAccount = accounts[0];
   }
   updateAuthUI();
 }
 
 async function getToken() {
+  if (!msalApp) return null;
   const req = { scopes: SCOPES, account: currentAccount };
-  try { return (await msal.acquireTokenSilent(req)).accessToken; }
-  catch { msal.acquireTokenRedirect(req); return null; }
+  try { return (await msalApp.acquireTokenSilent(req)).accessToken; }
+  catch { msalApp.acquireTokenRedirect(req); return null; }
 }
 
 function updateAuthUI() {
@@ -275,8 +287,8 @@ function updateAuthUI() {
   }
 }
 
-document.getElementById('btn-login').onclick = () => msal.loginRedirect({ scopes: SCOPES });
-document.getElementById('btn-logout').onclick = () => msal.logoutRedirect();
+document.getElementById('btn-login').onclick = () => msalApp && msalApp.loginRedirect({ scopes: SCOPES });
+document.getElementById('btn-logout').onclick = () => msalApp && msalApp.logoutRedirect();
 
 // ═══════════════════════════════════════════
 // SHAREPOINT API
