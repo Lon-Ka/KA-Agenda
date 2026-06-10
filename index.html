@@ -160,7 +160,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .check-rij{display:flex;align-items:center;gap:5px;}
 .check-rij input{width:13px;height:13px;cursor:pointer;accent-color:var(--blue);}
 .check-rij label{font-size:11px;color:var(--muted);cursor:pointer;}
-.handtek{border:1px solid #ccc;border-radius:4px;background:#f5f5f5;padding:5px;font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#999;text-align:center;margin-top:5px;min-height:28px;display:flex;align-items:center;justify-content:center;}
+.handtek{border:1px solid #ccc;border-radius:4px;background:#f5f5f5;padding:5px;font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#999;text-align:center;min-height:28px;display:flex;align-items:center;justify-content:center;}
+#agenda-footer{display:flex;align-items:stretch;gap:10px;margin-top:10px;padding-top:10px;border-top:1.5px solid #ccc;}
+.footer-heen{display:flex;align-items:center;gap:7px;padding:8px 14px;border:1px solid var(--border);border-radius:6px;background:var(--surface);white-space:nowrap;}
+.footer-heen label{font-size:12px;color:var(--text);cursor:pointer;}
+.footer-heen input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--blue);}
+.footer-handtek{flex:1;display:flex;align-items:flex-start;justify-content:center;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#999;min-height:72px;}
 
 /* OVERZICHT */
 .ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:12px;}
@@ -189,12 +194,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
   .print-hdr{display:block!important;text-align:center;margin-bottom:10px;border-bottom:2px solid var(--blue);padding-bottom:6px;}
   .print-hdr h1{font-family:'Arcena',sans-serif;font-size:26px;color:var(--blue);}
   .print-hdr .sub{font-size:11px;color:var(--muted);}
-  .dag-rij{min-height:90px;border-bottom:1.5px solid #999;}
+  .dag-rij{border-bottom:1px solid #aaa;flex:1;}
   .dag-label{background:#e8f0fa!important;}
-  .handtek{min-height:34px;border:1.5px solid #bbb;}
-  @page{size:A4 portrait;margin:12mm 10mm;}
+  .footer-handtek{min-height:40px;border:1.5px solid #bbb;}
+  #agenda-footer{margin-top:6px;padding-top:6px;}
+  @page{size:A4 portrait;margin:8mm 8mm;}
   #overzicht-panel{display:none;}
   .btn-add,.item-del{display:none!important;}
+  #agenda-wrap{min-height:calc(297mm - 16mm);display:flex;flex-direction:column;}
+  #dagen{flex:1;display:flex;flex-direction:column;}
+  .dag-body{min-height:0;flex:1;}
+  .taken-kolom,.denk-kolom{height:100%;}
 }
 .print-hdr{display:none;}
 </style>
@@ -242,6 +252,13 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
         <div class="ch-denk">Ik denk aan…</div>
       </div>
       <div id="dagen"></div>
+      <div id="agenda-footer">
+        <div class="footer-heen">
+          <input type="checkbox" id="heen-en-weer">
+          <label for="heen-en-weer">Heen en weer</label>
+        </div>
+        <div class="footer-handtek">Handtekening ouder</div>
+      </div>
     </div>
   </div>
 
@@ -290,7 +307,7 @@ const PLATFORMS = {"bingel": {"label": "Bingel", "t": true}, "scoodle": {"label"
 
 const DK_PLATFORMS = {"1": ["bingel", "vll", "taak", "leren"], "2": ["bingel", "scoodle", "taak", "leren"], "3": ["bingel", "scoodle", "taak", "leren"], "4": ["bingel", "scoodle", "classroom", "taak", "leren"], "5": ["bingel", "scoodle", "kabas", "classroom", "taak", "leren"], "6": ["bingel", "scoodle", "kabas", "classroom", "taak", "leren"]};
 
-const DK_META = {"1": {"tegen": false, "zwem": 1, "brief": true, "rk": false}, "2": {"tegen": false, "zwem": 1, "brief": true, "rk": false}, "3": {"tegen": false, "zwem": 1, "brief": true, "rk": true}, "4": {"tegen": true, "zwem": 1, "brief": true, "rk": true}, "5": {"tegen": true, "zwem": 3, "brief": true, "rk": true}, "6": {"tegen": true, "zwem": -1, "brief": true, "rk": true}};
+const DK_META = {"1": {"tegen": false, "zwem": 1, "brief": true, "rk": false}, "2": {"tegen": false, "zwem": 1, "brief": true, "rk": false}, "3": {"tegen": false, "zwem": 1, "brief": true, "rk": true}, "4": {"tegen": true, "zwem": 1, "brief": true, "rk": true}, "5": {"tegen": true, "zwem": 2, "brief": true, "rk": true}, "6": {"tegen": true, "zwem": -1, "brief": true, "rk": true}};
 
 
 const DAGEN_NL = ['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag'];
@@ -407,7 +424,7 @@ function weekKey(dk, offset) {
 }
 function getWeekData(dk, offset) {
   var k = weekKey(dk, offset);
-  if (!agendaData[k]) agendaData[k] = { dagen: {} };
+  if (!agendaData[k]) agendaData[k] = { dagen: {}, heenEnWeer: false };
   return agendaData[k];
 }
 function getDagData(dk, offset, di) {
@@ -419,6 +436,14 @@ function getDagData(dk, offset, di) {
 // ═══════════════════════════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════════════════════════
+function syncHeenEnWeer() {
+  var wd = getWeekData(currentDK, weekOffset);
+  var cb = document.getElementById('heen-en-weer');
+  if (!cb) return;
+  cb.checked = wd.heenEnWeer || false;
+  cb.onchange = function(e) { wd.heenEnWeer = e.target.checked; autoSave(); };
+}
+
 function renderWeekLabel() {
   var m = getMonday(weekOffset);
   var fri = new Date(m); fri.setDate(fri.getDate() + 4);
@@ -443,6 +468,7 @@ function renderAgenda() {
     chDenk.style.width = '190px';
   }
 
+  syncHeenEnWeer();
   DAGEN_NL.forEach(function(dagNaam, di) {
     var date = new Date(monday); date.setDate(date.getDate() + di);
     var dd = getDagData(currentDK, weekOffset, di);
@@ -492,8 +518,7 @@ function renderAgenda() {
     if (meta.brief) addCheck('brief', 'Brief', dd.brief, function(e) { dd.brief = e.target.checked; autoSave(); });
     if (meta.rk) addCheck('rk', 'Rode kaart', dd.rk, function(e) { dd.rk = e.target.checked; autoSave(); });
 
-    var ht = document.createElement('div'); ht.className = 'handtek'; ht.textContent = 'Handtekening ouder';
-    denkKol.appendChild(ht);
+    // Handtekening ouder staat eenmalig in de footer
 
     body.appendChild(denkKol);
     rij.appendChild(body);
