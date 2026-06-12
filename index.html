@@ -245,6 +245,45 @@ if (window.self === window.top) {
     });
 }
 </script>
+<script>
+if (window.self === window.top) {
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  height:100vh;font-family:'Segoe UI',sans-serif;background:#F5F7FA;text-align:center;padding:20px;">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style="margin-bottom:24px;">
+          <rect width="64" height="64" rx="16" fill="#0F1D2E"/>
+          <rect x="12" y="12" width="16" height="16" rx="4" fill="#1A6BB5"/>
+          <rect x="36" y="12" width="16" height="16" rx="4" fill="#2E8B57"/>
+          <rect x="12" y="36" width="16" height="16" rx="4" fill="#C05A1A"/>
+          <rect x="36" y="36" width="16" height="16" rx="4" fill="#6B7A8D"/>
+        </svg>
+        <h2 style="margin:0 0 8px;font-size:1.4rem;color:#1C2B3A;">Toegang via portaal vereist</h2>
+        <p style="margin:0 0 28px;color:#6B7A8D;max-width:360px;line-height:1.5;">
+          Deze applicatie is enkel beschikbaar via het MijnDigiKAntoor portaal.
+        </p>
+        <a href="https://lon-ka.github.io/KA-portaal/"
+           style="display:inline-flex;align-items:center;gap:10px;padding:14px 28px;
+                  background:#0F1D2E;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;">
+          Naar MijnDigiKAntoor
+        </a>
+      </div>`;
+  });
+}
+</script>
+<script>
+window._portalToken = null;
+window._portalEmail = '';
+window._appBooted = false;
+window.addEventListener('message', function(event) {
+  if (event.origin !== 'https://lon-ka.github.io') return;
+  if (!event.data || event.data.type !== 'MSAL_TOKEN') return;
+  if (window._portalToken) return;
+  window._portalToken = event.data.token;
+  window._portalEmail = event.data.email || '';
+  if (!window._appBooted) boot();
+});
+</script>
 </head>
 <body>
 
@@ -353,46 +392,71 @@ const DAGEN_KRT = ['MA','DI','WO','DO','VR'];
 // ═══════════════════════════════════════════════════════════
 // MSAL
 // ═══════════════════════════════════════════════════════════
-var msalApp = null;
-var currentAccount = null;
-var SCOPES = ['https://graph.microsoft.com/Sites.ReadWrite.All'];
-
-async function msalInit() {
-  msalApp = new msal.PublicClientApplication({
-    auth: { clientId: CONFIG.clientId, authority: 'https://login.microsoftonline.com/' + CONFIG.tenantId, redirectUri: CONFIG.redirectUri },
-    cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: false }
-  });
-  await msalApp.initialize();
-  var resp = await msalApp.handleRedirectPromise();
-  if (resp) { currentAccount = resp.account; }
-  else { var acc = msalApp.getAllAccounts(); if (acc.length) currentAccount = acc[0]; }
-  updateAuthUI();
-}
+const msalApp = new msal.PublicClientApplication({
+  auth: { clientId: CONFIG.clientId, authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`, redirectUri: CONFIG.redirectUri },
+  cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: false }
+});
+const SCOPES = ['User.Read', 'Sites.ReadWrite.All'];
 
 async function getToken() {
-  if (!msalApp || !currentAccount) return null;
-  try { return (await msalApp.acquireTokenSilent({ scopes: SCOPES, account: currentAccount })).accessToken; }
-  catch(e) { if(window.self !== window.top){ return null; }
-        await msalApp.acquireTokenRedirect({ scopes: SCOPES, account: currentAccount }); return null; }
-}
-
-function updateAuthUI() {
-  if (currentAccount) {
-    document.getElementById('user-name').textContent = currentAccount.name || currentAccount.username;
-    document.getElementById('btn-login').style.display = 'none';
-    document.getElementById('btn-logout').style.display = '';
-  } else {
-    document.getElementById('user-name').textContent = 'Niet aangemeld';
-    document.getElementById('btn-login').style.display = '';
-    document.getElementById('btn-logout').style.display = 'none';
+  if (window._portalToken) return window._portalToken;
+  const accounts = msalApp.getAllAccounts();
+  if (!accounts.length) return null;
+  try {
+    const r = await msalApp.acquireTokenSilent({ scopes: SCOPES, account: accounts[0] });
+    return r.accessToken;
+  } catch(e) {
+    if (window.self !== window.top) {
+      showError('Sessie verlopen. Sluit dit venster en meld opnieuw aan via het portaal.');
+      return null;
+    }
+    await msalApp.acquireTokenRedirect({ scopes: SCOPES, account: accounts[0] });
+    return null;
   }
 }
 
-document.getElementById('btn-login').onclick = function() {
-      if(window.self !== window.top){ return; }
-      msalApp && msalApp.loginRedirect({ scopes: SCOPES });
-    };
-document.getElementById('btn-logout').onclick = function() { msalApp && msalApp.logoutRedirect(); };
+async function login() {
+  if (window.self !== window.top) {
+    showError('Sessie verlopen. Sluit dit venster en meld opnieuw aan via het portaal.');
+    return;
+  }
+  try { await msalApp.loginRedirect({ scopes: SCOPES }); }
+  catch(e) { showError('Aanmelden mislukt: ' + e.message); }
+}
+
+async function logout() {
+  await msalApp.logoutRedirect({ postLogoutRedirectUri: CONFIG.redirectUri });
+}
+
+function showError(msg) {
+  const el = document.getElementById('sync-status');
+  if (el) el.textContent = '⚠ ' + msg;
+  console.error('KA-Agenda:', msg);
+}
+
+async function boot() {
+  try {
+    await msalApp.initialize();
+    const resp = await msalApp.handleRedirectPromise();
+    const accounts = msalApp.getAllAccounts();
+    if (!accounts.length && !window._portalToken) {
+      if (window.self !== window.top) {
+        showError('Geen sessie gevonden. Meld aan via het MijnDigiKAntoor portaal.');
+        return;
+      }
+      document.getElementById('btn-login').style.display = '';
+      document.getElementById('btn-logout').style.display = 'none';
+      return;
+    }
+    const account = resp?.account || accounts[0] || { username: window._portalEmail || '' };
+    document.getElementById('user-name').textContent = account.name || account.username || '';
+    document.getElementById('btn-login').style.display = 'none';
+    document.getElementById('btn-logout').style.display = '';
+    window._appBooted = true;
+  } catch(e) {
+    showError('Initialisatie mislukt: ' + e.message);
+  }
+}
 
 // ═══════════════════════════════════════════════════════════
 // SHAREPOINT
@@ -858,7 +922,7 @@ document.querySelectorAll('.tab').forEach(function(tab) {
 window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('app-title').textContent = CONFIG.appTitle;
   loadLocal();
-  msalInit().then(function() {
+  boot().then(function() {
     renderAgenda();
   });
   // Kalender asynchroon laden — herteken "Ik denk aan" na laden
