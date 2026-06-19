@@ -474,6 +474,8 @@ async function boot() {
         if (!window._portalToken) await new Promise(r => setTimeout(r, 2000));
         if (window._portalToken) {
           document.getElementById('user-name').textContent = window._portalEmail || '';
+          const btnLogin = document.getElementById('btn-login');
+          if (btnLogin) btnLogin.style.display = 'none';
           window._appBooted = true;
           return;
         }
@@ -484,6 +486,9 @@ async function boot() {
     }
     const account = resp?.account || accounts[0] || { username: window._portalEmail || '' };
     document.getElementById('user-name').textContent = account.name || account.username || '';
+    // Verberg aanmeld-knop als we via portaal werken of aangemeld zijn
+    const btnLogin = document.getElementById('btn-login');
+    if (btnLogin) btnLogin.style.display = 'none';
     window._appBooted = true;
   } catch(e) {
     showError('Initialisatie mislukt: ' + e.message);
