@@ -426,46 +426,69 @@ const DAGEN_KRT = ['MA','DI','WO','DO','VR'];
 // ═══════════════════════════════════════════════════════════
 // MSAL
 // ═══════════════════════════════════════════════════════════
-var msalApp = null;
-var currentAccount = null;
-var SCOPES = ['https://graph.microsoft.com/Sites.ReadWrite.All'];
-
-async function msalInit() {
-  msalApp = new msal.PublicClientApplication({
-    auth: { clientId: CONFIG.clientId, authority: 'https://login.microsoftonline.com/' + CONFIG.tenantId, redirectUri: CONFIG.redirectUri },
-    cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false }
-  });
-  await msalApp.initialize();
-  var resp = await msalApp.handleRedirectPromise();
-  if (resp) { currentAccount = resp.account; }
-  else { var acc = msalApp.getAllAccounts(); if (acc.length) currentAccount = acc[0]; }
-  updateAuthUI();
-}
+const msalApp = new msal.PublicClientApplication({
+  auth: { clientId: CONFIG.clientId, authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`, redirectUri: CONFIG.redirectUri },
+  cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: false }
+});
+const SCOPES = ['User.Read', 'Sites.ReadWrite.All'];
 
 async function getToken() {
   if (window._portalToken) return window._portalToken;
-  if (!msalApp || !currentAccount) return null;
-  try { return (await msalApp.acquireTokenSilent({ scopes: SCOPES, account: currentAccount })).accessToken; }
-  catch(e) {
-    if (window.self !== window.top) { showError('Sessie verlopen. Sluit dit venster en meld opnieuw aan via het portaal.'); return null; }
-    await msalApp.acquireTokenRedirect({ scopes: SCOPES, account: currentAccount }); return null;
+  const accounts = msalApp.getAllAccounts();
+  if (!accounts.length) return null;
+  try {
+    const r = await msalApp.acquireTokenSilent({ scopes: SCOPES, account: accounts[0] });
+    return r.accessToken;
+  } catch(e) {
+    if (window.self !== window.top) {
+      showError('Sessie verlopen. Sluit dit venster en meld opnieuw aan via het portaal.');
+      return null;
+    }
+    await msalApp.acquireTokenRedirect({ scopes: SCOPES, account: accounts[0] });
+    return null;
   }
 }
 
-function updateAuthUI() {
-  if (currentAccount) {
-    document.getElementById('user-name').textContent = currentAccount.name || currentAccount.username;
-    document.getElementById('btn-login').style.display = 'none';
-    document.getElementById('btn-logout').style.display = '';
-  } else {
-    document.getElementById('user-name').textContent = 'Niet aangemeld';
-    document.getElementById('btn-login').style.display = '';
-    document.getElementById('btn-logout').style.display = 'none';
+async function login() {
+  if (window.self !== window.top) {
+    showError('Sessie verlopen. Sluit dit venster en meld opnieuw aan via het portaal.');
+    return;
   }
+  try { await msalApp.loginRedirect({ scopes: SCOPES }); }
+  catch(e) { showError('Aanmelden mislukt: ' + e.message); }
 }
 
-document.getElementById('btn-login').onclick = function() { msalApp && msalApp.loginRedirect({ scopes: SCOPES }); };
-document.getElementById('btn-logout').onclick = function() { msalApp && msalApp.logoutRedirect(); };
+function showError(msg) {
+  const el = document.getElementById('sync-status');
+  if (el) el.textContent = '⚠ ' + msg;
+  console.error('KA-Agenda:', msg);
+}
+
+async function boot() {
+  try {
+    await msalApp.initialize();
+    const resp = await msalApp.handleRedirectPromise();
+    const accounts = msalApp.getAllAccounts();
+    if (!accounts.length && !window._portalToken) {
+      if (window.self !== window.top) {
+        if (!window._portalToken) await new Promise(r => setTimeout(r, 2000));
+        if (window._portalToken) {
+          document.getElementById('user-name').textContent = window._portalEmail || '';
+          window._appBooted = true;
+          return;
+        }
+        showError('Geen sessie gevonden. Meld aan via het MijnDigiKAntoor portaal.');
+        return;
+      }
+      return;
+    }
+    const account = resp?.account || accounts[0] || { username: window._portalEmail || '' };
+    document.getElementById('user-name').textContent = account.name || account.username || '';
+    window._appBooted = true;
+  } catch(e) {
+    showError('Initialisatie mislukt: ' + e.message);
+  }
+}
 
 // ═══════════════════════════════════════════════════════════
 // SHAREPOINT
@@ -931,62 +954,20 @@ document.querySelectorAll('.tab').forEach(function(tab) {
 // ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════
-// BOOT — exact patroon van KA-Agenda (werkend referentiebestand)
-// ═══════════════════════════════════════════════════════════
-function showError(msg) {
-  var el = document.getElementById('error-msg');
-  if (el) el.textContent = msg;
-  document.getElementById('error-view').style.display = '';
-  document.getElementById('main').style.display = 'none';
-  document.getElementById('topbar').style.display = 'none';
-  document.getElementById('savebar').style.display = 'none';
-}
-
-async function boot() {
-  try {
-    await msalApp.initialize();
-    const resp = await msalApp.handleRedirectPromise();
-    const accounts = msalApp.getAllAccounts();
-    if (!accounts.length && !window._portalToken) {
-      if (window.self !== window.top) {
-        if (!window._portalToken) await new Promise(r => setTimeout(r, 2000));
-        if (window._portalToken) {
-          document.getElementById('user-name').textContent = window._portalEmail || '';
-          window._appBooted = true;
-          return;
-        }
-        showError('Geen sessie gevonden. Meld aan via het MijnDigiKAntoor portaal.');
-        return;
-      }
-      // Standalone: toon login knop
-      document.getElementById('btn-login').style.display = '';
-      document.getElementById('btn-logout').style.display = 'none';
-      document.getElementById('user-name').textContent = 'Niet aangemeld';
-      window._appBooted = true;
-      return;
-    }
-    const account = resp?.account || accounts[0] || { username: window._portalEmail || '' };
-    document.getElementById('user-name').textContent = account.name || account.username || '';
-    currentAccount = account;
-    updateAuthUI();
-    window._appBooted = true;
-  } catch(e) {
-    showError('Initialisatie mislukt: ' + e.message);
-  }
-}
-
-boot().then(function() {
+window.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('app-title').textContent = CONFIG.appTitle;
   loadLocal();
-  renderAgenda();
-  laadKalender().then(function() {
-    if (kalenderLaadStatus === 'done') {
-      var monday = getMonday(weekOffset);
-      for (var di = 0; di < 5; di++) {
-        var wrap = document.getElementById('cal-' + di);
-        if (wrap) { var d = new Date(monday); d.setDate(d.getDate() + di); renderCalItems(wrap, d); }
+  boot().then(function() {
+    renderAgenda();
+    laadKalender().then(function() {
+      if (kalenderLaadStatus === 'done') {
+        var monday = getMonday(weekOffset);
+        for (var di = 0; di < 5; di++) {
+          var wrap = document.getElementById('cal-' + di);
+          if (wrap) { var d = new Date(monday); d.setDate(d.getDate() + di); renderCalItems(wrap, d); }
+        }
       }
-    }
+    });
   });
 });
 </script>
