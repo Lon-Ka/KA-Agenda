@@ -932,48 +932,8 @@ document.querySelectorAll('.tab').forEach(function(tab) {
 // INIT
 // ═══════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
-// BOOT — zelfde patroon als KA-Onkosten / KA-Portaal
+// BOOT — exact patroon van KA-Agenda (werkend referentiebestand)
 // ═══════════════════════════════════════════════════════════
-var _appBooted = false;
-
-async function boot() {
-  try {
-    document.getElementById('app-title').textContent = CONFIG.appTitle;
-    await msalApp.initialize();
-    var resp = await msalApp.handleRedirectPromise();
-    if (resp) currentAccount = resp.account;
-    else {
-      var accs = msalApp.getAllAccounts();
-      if (accs.length) currentAccount = accs[0];
-    }
-    if (!currentAccount) {
-      if (window.self !== window.top) {
-        showError('Geen actieve sessie gevonden. Meld aan via het MijnDigiKAntoor portaal en open de app opnieuw.');
-        return;
-      }
-      document.getElementById('btn-login').style.display = '';
-      document.getElementById('btn-logout').style.display = 'none';
-      document.getElementById('user-name').textContent = 'Niet aangemeld';
-    } else {
-      updateAuthUI();
-    }
-    _appBooted = true;
-    loadLocal();
-    renderAgenda();
-    laadKalender().then(function() {
-      if (kalenderLaadStatus === 'done') {
-        var monday = getMonday(weekOffset);
-        for (var di = 0; di < 5; di++) {
-          var wrap = document.getElementById('cal-' + di);
-          if (wrap) { var d = new Date(monday); d.setDate(d.getDate() + di); renderCalItems(wrap, d); }
-        }
-      }
-    });
-  } catch(e) {
-    showError('Opstartfout: ' + e.message);
-  }
-}
-
 function showError(msg) {
   var el = document.getElementById('error-msg');
   if (el) el.textContent = msg;
@@ -983,11 +943,52 @@ function showError(msg) {
   document.getElementById('savebar').style.display = 'none';
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
-} else {
-  boot();
+async function boot() {
+  try {
+    await msalApp.initialize();
+    const resp = await msalApp.handleRedirectPromise();
+    const accounts = msalApp.getAllAccounts();
+    if (!accounts.length && !window._portalToken) {
+      if (window.self !== window.top) {
+        if (!window._portalToken) await new Promise(r => setTimeout(r, 2000));
+        if (window._portalToken) {
+          document.getElementById('user-name').textContent = window._portalEmail || '';
+          window._appBooted = true;
+          return;
+        }
+        showError('Geen sessie gevonden. Meld aan via het MijnDigiKAntoor portaal.');
+        return;
+      }
+      // Standalone: toon login knop
+      document.getElementById('btn-login').style.display = '';
+      document.getElementById('btn-logout').style.display = 'none';
+      document.getElementById('user-name').textContent = 'Niet aangemeld';
+      window._appBooted = true;
+      return;
+    }
+    const account = resp?.account || accounts[0] || { username: window._portalEmail || '' };
+    document.getElementById('user-name').textContent = account.name || account.username || '';
+    currentAccount = account;
+    updateAuthUI();
+    window._appBooted = true;
+  } catch(e) {
+    showError('Initialisatie mislukt: ' + e.message);
+  }
 }
+
+boot().then(function() {
+  loadLocal();
+  renderAgenda();
+  laadKalender().then(function() {
+    if (kalenderLaadStatus === 'done') {
+      var monday = getMonday(weekOffset);
+      for (var di = 0; di < 5; di++) {
+        var wrap = document.getElementById('cal-' + di);
+        if (wrap) { var d = new Date(monday); d.setDate(d.getDate() + di); renderCalItems(wrap, d); }
+      }
+    }
+  });
+});
 </script>
 
 <script>
