@@ -4,20 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Schoolagenda — De Kei</title>
-<script>
-// ── Portaal token bridge (KA-patroon) ──
-window._portalToken = null;
-window._portalEmail = '';
-window._appBooted = false;
-window.addEventListener('message', function(event) {
-  if (event.origin !== 'https://lon-ka.github.io') return;
-  if (!event.data || event.data.type !== 'MSAL_TOKEN') return;
-  if (window._portalToken) return;
-  window._portalToken = event.data.token;
-  window._portalEmail = event.data.email || '';
-  if (!window._appBooted) boot();
-});
-</script>
 <script>/*! @azure/msal-browser v2.38.3 2023-10-27 */
 "use strict";!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).msal={})}(this,(function(e){
 /*! *****************************************************************************
@@ -394,6 +380,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
   <span id="save-msg"></span>
 </div>
 
+<script>
+// ── Portaal token bridge (KA-patroon) ──
+window._portalToken = null;
+window._portalEmail = '';
+window._appBooted = false;
+window.addEventListener('message', function(event) {
+  if (event.origin !== 'https://lon-ka.github.io') return;
+  if (!event.data || event.data.type !== 'MSAL_TOKEN') return;
+  if (window._portalToken) return;
+  window._portalToken = event.data.token;
+  window._portalEmail = event.data.email || '';
+  if (!window._appBooted) boot();
+});
+</script>
 <script>
 // ═══════════════════════════════════════════════════════════
 // CONFIGURATIE
