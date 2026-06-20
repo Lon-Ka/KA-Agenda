@@ -236,6 +236,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .help-step-nr{flex-shrink:0;width:22px;height:22px;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:2px}
 .help-step-txt{font-size:13px;color:#444;line-height:1.6}
 .help-footer{padding:.75rem 1.25rem;border-top:1px solid #E8E5DC;font-size:11px;color:#AAA;flex-shrink:0;text-align:center}
+
+/* Verberg app help knop in portaal context */
+body.in-portal .icon-btn[title="Help"],
+body.in-portal button[title="Help"].icon-btn,
+body.in-portal #helpBtn { display: none !important; }
 </style>
 
 <script>
@@ -305,6 +310,7 @@ window.addEventListener('message', function(event) {
   if (!event.data || event.data.type !== 'MSAL_TOKEN') return;
   if (window._portalToken) return;
   window._portalToken = event.data.token;
+    document.body.classList.add('in-portal');
   window._portalEmail = event.data.email || '';
   if (!window._appBooted) boot();
 });
