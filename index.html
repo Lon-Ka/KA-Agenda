@@ -300,15 +300,17 @@ if (window.self === window.top) {
 window._portalToken = null;
 window._portalEmail = '';
 window._appBooted = false;
-window.addEventListener('message', function(event) {
-  if (event.origin !== 'https://lon-ka.github.io') return;
-  if (!event.data) return;
-  if (event.data.type === 'OPEN_HELP') { openHelp(); return; }
-  if (event.data.type !== 'MSAL_TOKEN') return;
-  if (window._portalToken) return;
-  window._portalToken = event.data.token;
-  window._portalEmail = event.data.email || '';
-  if (!window._appBooted) boot();
+document.addEventListener('DOMContentLoaded', function() {
+  window.addEventListener('message', function(event) {
+    if (event.origin !== 'https://lon-ka.github.io') return;
+    if (!event.data) return;
+    if (event.data.type === 'OPEN_HELP') { if(typeof openHelp==='function') openHelp(); return; }
+    if (event.data.type !== 'MSAL_TOKEN') return;
+    if (window._portalToken) return;
+    window._portalToken = event.data.token;
+    window._portalEmail = event.data.email || '';
+    if (!window._appBooted && typeof boot==='function') boot();
+  });
 });
 </script>
 </head>
