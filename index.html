@@ -218,7 +218,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .help-drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);background:white;z-index:9001;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.15)}
 .help-drawer.on{transform:translateX(0)}
 .help-hdr{color:white;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.help-hdr h2{font-size:15px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px}
+.help-hdr h2{font-size:15px;font-weight:700;margin:0}
 .help-close{background:rgba(255,255,255,.2);border:none;border-radius:8px;color:white;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:background .15s;flex-shrink:0}
 .help-close:hover{background:rgba(255,255,255,.35)}
 .help-nav{display:flex;border-bottom:1px solid #E8E5DC;flex-shrink:0;overflow-x:auto}
@@ -226,14 +226,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .help-tab:hover{color:#333}
 .help-body{flex:1;overflow-y:auto;padding:1.25rem}
 .help-section{display:none}.help-section.active{display:block}
-.help-section h3{font-size:14px;font-weight:700;margin:0 0 .5rem;display:flex;align-items:center;gap:6px}
+.help-section h3{font-size:14px;font-weight:700;margin:0 0 .5rem}
 .help-section h4{font-size:11px;font-weight:700;color:#555;margin:.9rem 0 .3rem;text-transform:uppercase;letter-spacing:.04em}
 .help-section p{font-size:13px;color:#444;line-height:1.65;margin:0 0 .75rem}
 .help-section ul{margin:.25rem 0 .75rem;padding-left:1.25rem}
 .help-section li{font-size:13px;color:#444;line-height:1.65;margin-bottom:.25rem}
 .help-tip{border-left:3px solid #888;border-radius:0 8px 8px 0;padding:.6rem .85rem;margin:.75rem 0;font-size:12px;line-height:1.55;background:#F8F7F4;color:#444}
 .help-step{display:flex;gap:.75rem;margin-bottom:.6rem}
-.help-step-nr{flex-shrink:0;width:22px;height:22px;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:2px;background:#888}
+.help-step-nr{flex-shrink:0;width:22px;height:22px;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:2px}
 .help-step-txt{font-size:13px;color:#444;line-height:1.6}
 .help-footer{padding:.75rem 1.25rem;border-top:1px solid #E8E5DC;font-size:11px;color:#AAA;flex-shrink:0;text-align:center}
 </style>
@@ -300,17 +300,13 @@ if (window.self === window.top) {
 window._portalToken = null;
 window._portalEmail = '';
 window._appBooted = false;
-document.addEventListener('DOMContentLoaded', function() {
-  window.addEventListener('message', function(event) {
-    if (event.origin !== 'https://lon-ka.github.io') return;
-    if (!event.data) return;
-    if (event.data.type === 'OPEN_HELP') { if(typeof openHelp==='function') openHelp(); return; }
-    if (event.data.type !== 'MSAL_TOKEN') return;
-    if (window._portalToken) return;
-    window._portalToken = event.data.token;
-    window._portalEmail = event.data.email || '';
-    if (!window._appBooted && typeof boot==='function') boot();
-  });
+window.addEventListener('message', function(event) {
+  if (event.origin !== 'https://lon-ka.github.io') return;
+  if (!event.data || event.data.type !== 'MSAL_TOKEN') return;
+  if (window._portalToken) return;
+  window._portalToken = event.data.token;
+  window._portalEmail = event.data.email || '';
+  if (!window._appBooted) boot();
 });
 </script>
 </head>
@@ -331,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <span id="week-lbl"></span>
     <button id="next-week">&#8250;</button>
   </div>
-  <div class="spacer"></div><button onclick="openHelp()" title="Help" style="background:rgba(255,255,255,.18);border:none;border-radius:7px;color:white;width:32px;height:32px;cursor:pointer;font-size:16px;display:inline-flex;align-items:center;justify-content:center">?</button>
+  <div class="spacer"></div><button onclick="openHelp()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;color:white;width:32px;height:32px;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">&#63;</button>
   <span id="sync-status"></span>
   <div id="user-info">
     <span id="user-name">Niet aangemeld</span>
@@ -969,23 +965,23 @@ window.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-function openHelp(){
-  document.getElementById('helpOverlay').classList.add('on');
-  document.getElementById('helpDrawer').classList.add('on');
-  document.body.style.overflow='hidden';
-}
-function closeHelp(){
-  document.getElementById('helpOverlay').classList.remove('on');
-  document.getElementById('helpDrawer').classList.remove('on');
-  document.body.style.overflow='';
-}
-function showHelpTab(id,btn){
-  document.querySelectorAll('.help-section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.help-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('help-'+id).classList.add('active');
-  btn.classList.add('active');
-}
+function openHelp(){document.getElementById('helpOverlay').classList.add('on');document.getElementById('helpDrawer').classList.add('on');document.body.style.overflow='hidden';}
+function closeHelp(){document.getElementById('helpOverlay').classList.remove('on');document.getElementById('helpDrawer').classList.remove('on');document.body.style.overflow='';}
+function showHelpTab(id,btn){document.querySelectorAll('.help-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.help-tab').forEach(t=>t.classList.remove('active'));document.getElementById('help-'+id).classList.add('active');btn.classList.add('active');}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeHelp();});
+
+document.addEventListener('DOMContentLoaded', function() {
+  window.addEventListener('message', function(event) {
+    if (event.origin !== 'https://lon-ka.github.io') return;
+    if (!event.data) return;
+    if (event.data.type === 'OPEN_HELP') { if(typeof openHelp==='function') openHelp(); return; }
+    if (event.data.type !== 'MSAL_TOKEN') return;
+    if (window._portalToken) return;
+    window._portalToken = event.data.token;
+    window._portalEmail = event.data.email || '';
+    if (!window._appBooted && typeof boot==='function') boot();
+  });
+});
 
 </script>
 
@@ -993,39 +989,11 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeHelp();
 <div class="help-overlay" id="helpOverlay" onclick="closeHelp()"></div>
 <div class="help-drawer" id="helpDrawer">
   <div class="help-hdr" style="background:#1A6B4A">
-    <h2>&#9432; Help &mdash; Digitale Agenda</h2>
+    <h2>&#9432; Help &mdash; Agenda</h2>
     <button class="help-close" onclick="closeHelp()">&#x2715;</button>
   </div>
-  <div class="help-nav"><button class="help-tab  active" onclick="showHelpTab('algemeen',this)">Algemeen</button><button class="help-tab" onclick="showHelpTab('gebruik',this)">Gebruik</button><button class="help-tab" onclick="showHelpTab('leerkracht',this)">Leerkrachten</button><button class="help-tab" onclick="showHelpTab('beheer',this)">Beheer</button></div>
-  <div class="help-body"><div class="help-section  active" id="help-algemeen">
-      <h3>&#128197; Over de Digitale Agenda</h3>
-      <p>De <strong>Digitale Schoolagenda</strong> vervangt de papieren agenda voor leerlingen van De Kei. Leerkrachten plannen huistaken en toetsen digitaal; leerlingen en ouders raadplegen de agenda via het portaal of een link.</p>
-      <h4>Per leerjaar</h4>
-      <p>Gebruik de selector bovenaan om te schakelen tussen leerjaren (DK1 t.e.m. DK6). Elke klas heeft een eigen agenda.</p></div><div class="help-section" id="help-gebruik">
-      <h3>&#128196; De agenda raadplegen</h3>
-      <p>De agenda toont een weekoverzicht met huistaken, toetsen en mededelingen per dag.</p>
-      <h4>Navigeren</h4>
-      <ul>
-        <li>Gebruik de pijltjes naast de weekdatum om voor- of achteruit te bladeren</li>
-        <li>Klik op <strong>Vandaag</strong> om terug te keren naar de huidige week</li>
-        <li>Kleur per vak is consistent doorheen het jaar</li>
-      </ul>
-      <div class="help-tip"><strong>Tip voor ouders:</strong> de agenda is ook raadpleegbaar via de directe link die de school communiceert — zonder aanmelden.</div></div><div class="help-section" id="help-leerkracht">
-      <h3>&#9998; Items toevoegen (leerkrachten)</h3>
-      <div class="help-step"><div class="help-step-nr">1</div><div class="help-step-txt">Klik op een dag in de agenda</div></div>
-      <div class="help-step"><div class="help-step-nr">2</div><div class="help-step-txt">Kies het type: huistaak, toets of mededeling</div></div>
-      <div class="help-step"><div class="help-step-nr">3</div><div class="help-step-txt">Selecteer het vak en vul de omschrijving in</div></div>
-      <div class="help-step"><div class="help-step-nr">4</div><div class="help-step-txt">Sla op — leerlingen zien de taak onmiddellijk</div></div>
-      <div class="help-tip"><strong>Bewerken:</strong> klik op een bestaand item om het te wijzigen of te verwijderen. Alleen de leerkracht die het item aanmaakte kan het bewerken.</div></div><div class="help-section" id="help-beheer">
-      <h3>&#9881; Beheer</h3>
-      <h4>Vakken en kleuren</h4>
-      <p>De lijst van vakken en hun kleurcodering wordt centraal beheerd door de ICT-coördinator via de instellingen.</p>
-      <h4>Schooljaar afsluiten</h4>
-      <p>Op het einde van het schooljaar kan de agenda worden gearchiveerd. Leerlingen en ouders kunnen het archief nog raadplegen via een aparte link.</p>
-      <h4>Synchronisatie</h4>
-      <p>Agendawijzigingen worden in real-time opgeslagen in SharePoint. Er is geen aparte synchronisatieknop nodig.</p></div></div>
+  <div class="help-nav"><button class="help-tab  active" onclick="showHelpTab('algemeen',this)">Algemeen</button><button class="help-tab" onclick="showHelpTab('gebruik',this)">Gebruik</button><button class="help-tab" onclick="showHelpTab('leerkracht',this)">Leerkrachten</button><button class="help-tab" onclick="showHelpTab('beheer',this)">Beheer</button></div><div class="help-body"><div class="help-section  active" id="help-algemeen"><h3 style="color:#1A6B4A">&#128197; Over de Digitale Agenda</h3><p>Schoolagenda voor De Kei. Leerkrachten plannen huistaken en toetsen; leerlingen en ouders raadplegen via het portaal.</p></div><div class="help-section" id="help-gebruik"><h3 style="color:#1A6B4A">&#128196; Raadplegen</h3><p>Weekoverzicht met huistaken, toetsen en mededelingen. Gebruik pijltjes om te navigeren of klik <strong>Vandaag</strong>.</p></div><div class="help-section" id="help-leerkracht"><h3 style="color:#1A6B4A">&#9998; Item toevoegen</h3><div class="help-step"><div class="help-step-nr" style="background:#1A6B4A">1</div><div class="help-step-txt">Klik op een dag</div></div><div class="help-step"><div class="help-step-nr" style="background:#1A6B4A">2</div><div class="help-step-txt">Kies type: huistaak, toets of mededeling</div></div><div class="help-step"><div class="help-step-nr" style="background:#1A6B4A">3</div><div class="help-step-txt">Selecteer vak en vul omschrijving in</div></div><div class="help-step"><div class="help-step-nr" style="background:#1A6B4A">4</div><div class="help-step-txt">Sla op — zichtbaar voor leerlingen</div></div></div><div class="help-section" id="help-beheer"><h3 style="color:#1A6B4A">&#9881; Beheer</h3><p>Vakken en kleuren worden centraal beheerd. Archivering op einde schooljaar via instellingen.</p></div></div>
   <div class="help-footer">Scholengroep Kapelle-op-den-Bos BaO — ict@gebaska.be</div>
 </div>
-
 </body>
 </html>
