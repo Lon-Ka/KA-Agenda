@@ -212,6 +212,31 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 }
 .print-hdr{display:none;}
 
+#planning-achterzijde{display:none;}
+.plan-hdr{text-align:center;margin-bottom:14px;border-bottom:2px solid var(--blue);padding-bottom:8px;}
+.plan-hdr h1{font-family:'Arcena',sans-serif;font-size:24px;color:var(--blue);margin:0 0 4px;}
+.plan-naam{font-size:12px;color:var(--muted);}
+.plan-naamlijn{display:inline-block;min-width:220px;border-bottom:1px solid #999;}
+.plan-tabel{width:100%;border-collapse:collapse;margin-bottom:14px;}
+.plan-tabel th{font-size:10px;text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:6px 8px;color:#666;}
+.plan-th-dag{width:34px;}
+.plan-tabel td{border-top:1px solid #ccc;padding:8px;vertical-align:top;height:70px;}
+.plan-dag-label{background:#e8f0fa;font-weight:700;color:var(--blue);text-align:center;width:34px;writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;padding:6px 3px;}
+.plan-dag-label .plan-dag-datum{font-weight:500;font-size:9px;margin-left:4px;}
+.plan-tabel td.plan-col-heen{width:130px;border-left:1px solid #ccc;}
+.plan-onder{display:flex;align-items:stretch;gap:10px;margin-top:6px;}
+.plan-opm{flex:1;}
+.plan-opm-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;margin-bottom:4px;}
+.plan-opm-box{border:1.5px solid #bbb;border-radius:6px;min-height:38px;}
+.plan-handtek{flex:1;display:flex;align-items:flex-start;justify-content:center;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#999;min-height:38px;}
+
+@media print {
+  body.heeft-achterzijde #planning-achterzijde{
+    display:block;
+    page-break-before:always;
+  }
+}
+
 /* ── HELP DRAWER ─────────────────────────────────────── */
 .help-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9000;opacity:0;pointer-events:none;transition:opacity .25s}
 .help-overlay.on{opacity:1;pointer-events:all}
@@ -364,6 +389,25 @@ window.addEventListener('message', function(event) {
         </div>
         <div class="footer-handtek">Handtekening ouder</div>
       </div>
+    </div>
+  </div>
+
+  <!-- Achterzijde (pagina 2 bij afdrukken) — enkel voor klassen met 'tegen' (2de/3de graad) -->
+  <div id="planning-achterzijde">
+    <div class="plan-hdr">
+      <h1>Planning — week <span id="plan-week-lbl"></span></h1>
+      <div class="plan-naam">Naam: <span class="plan-naamlijn"></span></div>
+    </div>
+    <table class="plan-tabel">
+      <thead><tr><th class="plan-th-dag"></th><th>Mijn planning / notities</th><th>Heen en weer</th></tr></thead>
+      <tbody id="plan-dagen"></tbody>
+    </table>
+    <div class="plan-onder">
+      <div class="plan-opm">
+        <div class="plan-opm-label">Opmerkingen</div>
+        <div class="plan-opm-box"></div>
+      </div>
+      <div class="plan-handtek">Handtekening ouder</div>
     </div>
   </div>
 
@@ -757,6 +801,18 @@ function renderAgenda() {
   var chDenk = document.querySelector('.ch-denk');
   if (meta.tegen) {
     chDenk.style.width = '190px';
+  }
+
+  // Achterzijde (pagina 2 bij afdrukken): enkel voor klassen met 'tegen' aan
+  document.body.classList.toggle('heeft-achterzijde', !!meta.tegen);
+  if (meta.tegen) {
+    var friDate = new Date(monday); friDate.setDate(friDate.getDate() + 4);
+    document.getElementById('plan-week-lbl').textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
+    var planBody = document.getElementById('plan-dagen');
+    planBody.innerHTML = DAGEN_NL.map(function(dagNaam, di) {
+      var d = new Date(monday); d.setDate(d.getDate() + di);
+      return '<tr><td class="plan-dag-label">' + DAGEN_KRT[di] + '<span class="plan-dag-datum">' + fmtDate(d) + '</span></td><td></td><td class="plan-col-heen"></td></tr>';
+    }).join('');
   }
 
   syncHeenEnWeer();
