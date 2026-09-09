@@ -169,7 +169,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .footer-heen{display:flex;align-items:center;gap:7px;padding:8px 14px;border:1px solid var(--border);border-radius:6px;background:var(--surface);white-space:nowrap;}
 .footer-heen label{font-size:12px;color:var(--text);cursor:pointer;}
 .footer-heen input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--blue);}
-.footer-handtek{flex:1;display:flex;align-items:flex-start;justify-content:center;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#999;min-height:72px;}
+.footer-handtek{flex:1;display:flex;align-items:flex-start;justify-content:flex-start;padding-left:8px;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#999;min-height:72px;}
 
 /* OVERZICHT */
 .ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:12px;}
@@ -191,9 +191,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 /* PRINT */
 @media print {
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .denk-tekst:placeholder-shown{display:none!important;}
+  .denk-tekst:empty{display:none!important;}
   #topbar,#tabs,#savebar{display:none!important;}
   body{background:white;}
-  #main{padding:0;max-width:100%;}
+  #main{padding:0;max-width:100%;margin-left:18mm;}  /* marge voor perforatiegaatjes */
   #agenda-wrap{border:none;padding:0;border-radius:0;}
   .print-hdr{display:block!important;text-align:center;margin-bottom:10px;border-bottom:2px solid var(--blue);padding-bottom:6px;}
   .print-hdr h1{font-family:'Arcena',sans-serif;font-size:26px;color:var(--blue);}
@@ -228,7 +230,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .plan-opm{flex:1;}
 .plan-opm-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;margin-bottom:4px;}
 .plan-opm-box{border:1.5px solid #bbb;border-radius:6px;min-height:38px;}
-.plan-handtek{flex:1;display:flex;align-items:flex-start;justify-content:center;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#999;min-height:38px;}
+.plan-handtek{flex:1;display:flex;align-items:flex-start;justify-content:flex-start;padding-left:8px;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#999;min-height:38px;}
 
 @media print {
   body.heeft-achterzijde #planning-achterzijde{
@@ -335,7 +337,6 @@ window.addEventListener('message', function(event) {
   if (!event.data || event.data.type !== 'MSAL_TOKEN') return;
   if (window._portalToken) return;
   window._portalToken = event.data.token;
-    document.body.classList.add('in-portal');
   window._portalEmail = event.data.email || '';
   if (!window._appBooted) boot();
 });
@@ -915,10 +916,19 @@ function renderAgenda() {
     tekstVak.placeholder = 'Vrije notitie…';
     tekstVak.value = dd.denkTekst || '';
     tekstVak.rows = 2;
+    tekstVak.maxLength = 200;
     tekstVak.style.cssText = 'width:100%;margin-top:6px;padding:4px 6px;border:1px solid #ddd;border-radius:5px;font-size:13px;font-family:inherit;resize:vertical;';
+    var tellerDiv = document.createElement('div');
+    tellerDiv.style.cssText = 'font-size:10px;color:#aaa;text-align:right;margin-top:1px;';
+    tellerDiv.textContent = (200 - (dd.denkTekst || '').length) + ' tekens resterend';
+    tekstVak.oninput = function(e) {
+      dd.denkTekst = e.target.value;
+      tellerDiv.textContent = (200 - e.target.value.length) + ' tekens resterend';
+      autoSave();
+    };
     tekstVak.onchange = function(e) { dd.denkTekst = e.target.value; autoSave(); };
-    tekstVak.oninput = function(e) { dd.denkTekst = e.target.value; };
     denkKol.appendChild(tekstVak);
+    denkKol.appendChild(tellerDiv);
 
     // Kalenderactiviteiten
     var calWrap = document.createElement('div');
@@ -943,15 +953,21 @@ function maakItemRij(di, idx, item, heeftTegen) {
   img.src = ICONS[item.platform] || ''; img.alt = pInfo.label || item.platform; img.title = pInfo.label || item.platform;
   r.appendChild(img);
 
-  // Tekstveld
-  var inp = document.createElement('input'); inp.className = 'item-input';
+  // Tekstveld (textarea voor meerdere regels)
+  var inp = document.createElement('textarea'); inp.className = 'item-input';
   inp.placeholder = (pInfo.label || item.platform) + '…';
   inp.value = item.tekst || '';
-  inp.oninput = function(e) { dd.items[idx].tekst = e.target.value; autoSave(); };
+  inp.rows = 1;
+  inp.style.cssText = 'resize:none;overflow:hidden;min-height:22px;';
+  inp.oninput = function(e) {
+    e.target.style.height = 'auto';
+    e.target.style.height = e.target.scrollHeight + 'px';
+    dd.items[idx].tekst = e.target.value; autoSave();
+  };
   r.appendChild(inp);
 
-  // Tegen checkbox (alleen voor platforms met t:true en als DK tegen heeft)
-  if (heeftTegen && pInfo.t) {
+  // Aanvink checkbox (altijd tonen voor eigen toevoegingen)
+  if (heeftTegen) {
     var cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'item-tegen';
     cb.checked = item.tegen || false;
     cb.title = 'Tegen';
@@ -1095,7 +1111,18 @@ document.getElementById('dk-select').onchange = function(e) {
 document.getElementById('prev-week').onclick = function() { weekOffset--; renderAgenda(); };
 document.getElementById('next-week').onclick = function() { weekOffset++; renderAgenda(); };
 document.getElementById('btn-save').onclick = opslaan;
-document.getElementById('btn-print').onclick = function() { window.print(); };
+document.getElementById('btn-print').onclick = function() {
+  // Verberg lege vrije notities bij afdrukken
+  document.querySelectorAll('.denk-tekst').forEach(function(el) {
+    if (!el.value || !el.value.trim()) el.style.display = 'none';
+    else el.style.display = '';
+  });
+  window.print();
+  // Herstel na afdrukken
+  setTimeout(function() {
+    document.querySelectorAll('.denk-tekst').forEach(function(el) { el.style.display = ''; });
+  }, 1000);
+};
 document.getElementById('btn-reset').onclick = function() {
   if (!confirm('Alle gegevens van deze week wissen?')) return;
   delete agendaData[weekKey(currentDK, weekOffset)];
