@@ -873,7 +873,8 @@ function renderAgenda() {
   document.body.classList.remove('heeft-achterzijde');
   if (meta.tegen) {
     var friDate = new Date(monday); friDate.setDate(friDate.getDate() + 4);
-    ['plan-week-lbl'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
+    var planWeekEl = document.getElementById('plan-week-lbl');
+    if (planWeekEl) planWeekEl.textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
     var planBody = document.getElementById('plan-dagen');
     planBody.innerHTML = DAGEN_NL.map(function(dagNaam, di) {
       var d = new Date(monday); d.setDate(d.getDate() + di);
@@ -1196,8 +1197,9 @@ document.querySelectorAll('.tab').forEach(function(tab) {
 window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('app-title').textContent = CONFIG.appTitle;
   loadLocal();
+  renderAgenda(); // Toon agenda direct met lokale data
   boot().then(function() {
-    renderAgenda();
+    renderAgenda(); // Herteken na login
     loadKlasInstellingen(currentDK).then(function(v){ if (v) renderAgenda(); });
   });
   // Kalender asynchroon laden — herteken "Ik denk aan" na laden
@@ -1219,10 +1221,6 @@ window.addEventListener('DOMContentLoaded', function() {
 function openHelp(){document.getElementById('helpOverlay').classList.add('on');document.getElementById('helpDrawer').classList.add('on');document.body.style.overflow='hidden';}
 function closeHelp(){document.getElementById('helpOverlay').classList.remove('on');document.getElementById('helpDrawer').classList.remove('on');document.body.style.overflow='';}
 
-function closeInstellingen(){
-  document.getElementById('instPanel').style.display = 'none';
-  document.getElementById('instOverlay').style.display = 'none';
-}
 async function openInstellingen(){
   document.getElementById('instPanel').style.display = 'block';
   document.getElementById('instOverlay').style.display = 'block';
@@ -1252,17 +1250,18 @@ async function opslaanInstellingen(){
 function showHelpTab(id,btn){document.querySelectorAll('.help-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.help-tab').forEach(t=>t.classList.remove('active'));document.getElementById('help-'+id).classList.add('active');btn.classList.add('active');}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeHelp();});
 
-document.addEventListener('DOMContentLoaded', function() {
-  window.addEventListener('message', function(event) {
-    if (event.origin !== 'https://lon-ka.github.io') return;
-    if (!event.data) return;
-    if (event.data.type === 'OPEN_HELP') { if(typeof openHelp==='function') openHelp(); return; }
-    if (event.data.type !== 'MSAL_TOKEN') return;
-    if (window._portalToken) return;
-    window._portalToken = event.data.token;
-    window._portalEmail = event.data.email || '';
-    if (!window._appBooted && typeof boot==='function') boot();
-  });
+window.addEventListener('message', function(event) {
+  if (event.origin !== 'https://lon-ka.github.io') return;
+  if (!event.data) return;
+  if (event.data.type === 'OPEN_HELP') { if(typeof openHelp==='function') openHelp(); return; }
+  if (event.data.type !== 'MSAL_TOKEN') return;
+  if (window._portalToken) return;
+  window._portalToken = event.data.token;
+  window._portalEmail = event.data.email || '';
+  document.getElementById('user-name').textContent = event.data.email || '';
+  window._appBooted = true;
+  renderAgenda();
+  loadKlasInstellingen(currentDK).then(function(v){ if (v) renderAgenda(); });
 });
 
 </script>
