@@ -558,9 +558,7 @@ async function boot() {
         if (window._portalToken) {
           document.getElementById('user-name').textContent = window._portalEmail || '';
           window._appBooted = true;
-          // Laad agenda na portaal token ontvangst
-          loadLocal();
-          boot().then(function() { renderAgenda(); });
+          renderAgenda();
           return;
         }
         showError('Geen sessie gevonden. Meld aan via het MijnDigiKAntoor portaal.');
