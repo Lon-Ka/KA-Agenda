@@ -347,7 +347,12 @@ window.addEventListener('message', function(event) {
   if (window._portalToken) return;
   window._portalToken = event.data.token;
   window._portalEmail = event.data.email || '';
-  if (!window._appBooted) boot();
+  document.getElementById('user-name').textContent = event.data.email || '';
+  window._appBooted = true;
+  loadLocal();
+  renderAgenda();
+  loadKlasInstellingen(currentDK).then(function(v){ if (v) renderAgenda(); });
+  laadKalender().then(function() { renderAgenda(); });
 });
 </script>
 </head>
@@ -551,24 +556,22 @@ async function boot() {
   try {
     await msalApp.initialize();
     const resp = await msalApp.handleRedirectPromise();
-    const accounts = msalApp.getAllAccounts();
-    if (!accounts.length && !window._portalToken) {
-      if (window.self !== window.top) {
-        if (!window._portalToken) await new Promise(r => setTimeout(r, 2000));
-        if (window._portalToken) {
-          document.getElementById('user-name').textContent = window._portalEmail || '';
-          window._appBooted = true;
-          renderAgenda();
-          return;
-        }
-        showError('Geen sessie gevonden. Meld aan via het MijnDigiKAntoor portaal.');
-        return;
-      }
+    if (resp) {
+      document.getElementById('user-name').textContent = resp.account.name || resp.account.username || '';
+      window._appBooted = true;
       return;
     }
-    const account = resp?.account || accounts[0] || { username: window._portalEmail || '' };
-    document.getElementById('user-name').textContent = account.name || account.username || '';
-    window._appBooted = true;
+    const accounts = msalApp.getAllAccounts();
+    if (accounts.length) {
+      document.getElementById('user-name').textContent = accounts[0].name || accounts[0].username || '';
+      window._appBooted = true;
+      return;
+    }
+    // Geen MSAL sessie — wacht op portaal token via postMessage
+    // renderAgenda wordt aangeroepen door de token bridge
+    if (window.self !== window.top && !window._portalToken) {
+      showError('Laden…');
+    }
   } catch(e) {
     showError('Initialisatie mislukt: ' + e.message);
   }
