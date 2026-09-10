@@ -569,7 +569,6 @@ async function boot() {
     const account = resp?.account || accounts[0] || { username: window._portalEmail || '' };
     document.getElementById('user-name').textContent = account.name || account.username || '';
     window._appBooted = true;
-    renderAgenda();
   } catch(e) {
     showError('Initialisatie mislukt: ' + e.message);
   }
