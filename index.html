@@ -113,7 +113,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 #agenda-wrap{background:var(--white);border:1px solid var(--border);border-radius:0 8px 8px 8px;padding:12px 14px;}
 
 /* KOLOMHOOFDEN */
-.col-hdrs{display:flex;gap:0;margin-bottom:6px;font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);}
+.col-hdrs{display:flex;gap:0;margin-bottom:6px;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);padding-left:36px;}
 .ch-taken{flex:1;}
 .ch-denk{width:190px;padding-left:10px;}
 
@@ -135,7 +135,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 /* ITEM RIJ (toegevoegd platform) */
 .item-rij{display:flex;align-items:center;gap:5px;padding:2px 0;}
 .item-icon{width:20px;height:20px;object-fit:contain;flex-shrink:0;border-radius:3px;}
-.item-input{flex:1;border:none;border-bottom:1px solid #e0e0e0;background:transparent;font-size:14px;color:var(--text);padding:1px 3px;outline:none;min-width:0;}
+.item-input{flex:1;border:none;border-bottom:1px solid #e0e0e0;background:transparent;font-size:12px;color:var(--text);padding:1px 3px;outline:none;min-width:0;}
 .item-input:focus{border-bottom-color:var(--blue);}
 .item-input::placeholder{color:#bbb;}
 .item-del{width:16px;height:16px;border:none;background:none;color:#ccc;cursor:pointer;font-size:13px;line-height:1;padding:0;flex-shrink:0;}
@@ -191,11 +191,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 /* PRINT */
 @media print {
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .denk-tekst:placeholder-shown{display:none!important;}
-  .denk-tekst:empty{display:none!important;}
   #topbar,#tabs,#savebar{display:none!important;}
   body{background:white;}
-  #main{padding:0;max-width:100%;margin-left:18mm;}  /* marge voor perforatiegaatjes */
+  #main{padding:0;max-width:100%;margin-left:18mm;}
   #agenda-wrap{border:none;padding:0;border-radius:0;}
   .print-hdr{display:block!important;text-align:center;margin-bottom:10px;border-bottom:2px solid var(--blue);padding-bottom:6px;}
   .print-hdr h1{font-family:'Arcena',sans-serif;font-size:26px;color:var(--blue);}
@@ -214,7 +212,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 }
 .print-hdr{display:none;}
 
-#planning-achterzijde,#planning-achterzijde-hoog{display:none;}
+#planning-achterzijde{display:none;}
 .plan-hdr{text-align:center;margin-bottom:14px;border-bottom:2px solid var(--blue);padding-bottom:8px;}
 .plan-hdr h1{font-family:'Arcena',sans-serif;font-size:24px;color:var(--blue);margin:0 0 4px;}
 .plan-naam{font-size:12px;color:var(--muted);}
@@ -224,28 +222,19 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .plan-th-dag{width:34px;}
 .plan-tabel td{border-top:1px solid #ccc;padding:8px;vertical-align:top;height:70px;}
 .plan-dag-label{background:#e8f0fa;font-weight:700;color:var(--blue);text-align:center;width:34px;writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;padding:6px 3px;}
-.plan-dag-label .plan-dag-datum{font-weight:600;font-size:12px;margin-left:4px;}
+.plan-dag-label .plan-dag-datum{font-weight:500;font-size:9px;margin-left:4px;}
 .plan-tabel td.plan-col-heen{width:130px;border-left:1px solid #ccc;}
 .plan-onder{display:flex;align-items:stretch;gap:10px;margin-top:6px;}
-.plan-hw-blok{flex:2;margin-bottom:6px;}
-.plan-hw-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;font-weight:700;margin-bottom:4px;}
-.plan-hw-tekst{border:1.5px solid #bbb;border-radius:6px;min-height:60px;}
-.plan-handtek{flex:1;display:flex;align-items:flex-start;justify-content:flex-start;padding-left:8px;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#999;min-height:38px;}
+.plan-opm{flex:1;}
+.plan-opm-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;margin-bottom:4px;}
+.plan-opm-box{border:1.5px solid #bbb;border-radius:6px;min-height:38px;}
+.plan-handtek{flex:1;display:flex;align-items:flex-start;justify-content:center;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#999;min-height:38px;}
 
 @media print {
-  body.heeft-achterzijde-dk14 #planning-achterzijde{
+  body.heeft-achterzijde #planning-achterzijde{
     display:block;
     page-break-before:always;
-    margin-left:18mm;
   }
-  body.heeft-achterzijde-dk56 #planning-achterzijde-hoog{
-    display:block;
-    page-break-before:always;
-    margin-left:18mm;
-  }
-  .plan-tabel td{height:28px;}
-  .plan-th-tijd{width:36px;}
-  .plan-dag-label.plan-tijd{font-size:9px;text-align:center;background:#f0f0f0;}
 }
 
 /* ── HELP DRAWER ─────────────────────────────────────── */
@@ -346,13 +335,24 @@ window.addEventListener('message', function(event) {
   if (!event.data || event.data.type !== 'MSAL_TOKEN') return;
   if (window._portalToken) return;
   window._portalToken = event.data.token;
+    document.body.classList.add('in-portal');
+  window._portalEmail = event.data.email || '';
+  if (!window._appBooted) boot();
+});
+</script>
+<script>
+window._portalToken = null;
+window._portalEmail = '';
+window._appBooted = false;
+window.addEventListener('message', function(event) {
+  if (event.origin !== 'https://lon-ka.github.io') return;
+  if (!event.data || event.data.type !== 'MSAL_TOKEN') return;
+  if (window._portalToken) return;
+  window._portalToken = event.data.token;
   window._portalEmail = event.data.email || '';
   document.getElementById('user-name').textContent = event.data.email || '';
   window._appBooted = true;
-  loadLocal();
   renderAgenda();
-  loadKlasInstellingen(currentDK).then(function(v){ if (v) renderAgenda(); });
-  laadKalender().then(function() { renderAgenda(); });
 });
 </script>
 </head>
@@ -407,53 +407,20 @@ window.addEventListener('message', function(event) {
     </div>
   </div>
 
-  <!-- Achterzijde DK1-4: Heen en weer tekstvak + handtekening -->
-  <div id="planning-achterzijde" class="achterzijde-dk14">
+  <!-- Achterzijde (pagina 2 bij afdrukken) — enkel voor klassen met 'tegen' (2de/3de graad) -->
+  <div id="planning-achterzijde">
     <div class="plan-hdr">
-      <h1>Week <span id="plan-week-lbl"></span></h1>
-      <div class="plan-naam">Naam: <span class="plan-naamlijn"></span></div>
-    </div>
-    <div class="plan-hw-blok">
-      <div class="plan-hw-label">Heen en weer</div>
-      <div class="plan-hw-tekst"></div>
-    </div>
-    <div class="plan-onder">
-      <div class="plan-handtek">Handtekening ouder</div>
-    </div>
-  </div>
-
-  <!-- Achterzijde DK5-6: Planning blok + heen en weer + handtekening -->
-  <div id="planning-achterzijde-hoog" class="achterzijde-dk56">
-    <div class="plan-hdr">
-      <h1>Mijn persoonlijke planning deze week</h1>
+      <h1>Planning — week <span id="plan-week-lbl"></span></h1>
       <div class="plan-naam">Naam: <span class="plan-naamlijn"></span></div>
     </div>
     <table class="plan-tabel">
-      <thead>
-        <tr>
-          <th class="plan-th-dag"></th>
-          <th class="plan-th-tijd">Tijd</th>
-          <th>Maandag</th><th>Dinsdag</th><th>Woensdag</th><th>Donderdag</th><th>Vrijdag</th>
-          <th>Zaterdag</th><th>Zondag</th>
-        </tr>
-      </thead>
-      <tbody id="plan-dagen">
-        <tr><td class="plan-dag-label plan-tijd">08:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td class="plan-dag-label plan-tijd">09:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td class="plan-dag-label plan-tijd">10:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td class="plan-dag-label plan-tijd">11:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td class="plan-dag-label plan-tijd">12:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td class="plan-dag-label plan-tijd">13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td class="plan-dag-label plan-tijd">14:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td class="plan-dag-label plan-tijd">15:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td class="plan-dag-label plan-tijd">16:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-        <tr><td class="plan-dag-label plan-tijd">17:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      </tbody>
+      <thead><tr><th class="plan-th-dag"></th><th>Mijn planning / notities</th><th>Heen en weer</th></tr></thead>
+      <tbody id="plan-dagen"></tbody>
     </table>
     <div class="plan-onder">
-      <div class="plan-hw-blok">
-        <div class="plan-hw-label">Heen en weer</div>
-        <div class="plan-hw-tekst"></div>
+      <div class="plan-opm">
+        <div class="plan-opm-label">Opmerkingen</div>
+        <div class="plan-opm-box"></div>
       </div>
       <div class="plan-handtek">Handtekening ouder</div>
     </div>
@@ -556,22 +523,23 @@ async function boot() {
   try {
     await msalApp.initialize();
     const resp = await msalApp.handleRedirectPromise();
-    if (resp) {
-      document.getElementById('user-name').textContent = resp.account.name || resp.account.username || '';
-      window._appBooted = true;
-      return;
-    }
     const accounts = msalApp.getAllAccounts();
-    if (accounts.length) {
-      document.getElementById('user-name').textContent = accounts[0].name || accounts[0].username || '';
-      window._appBooted = true;
+    if (!accounts.length && !window._portalToken) {
+      if (window.self !== window.top) {
+        if (!window._portalToken) await new Promise(r => setTimeout(r, 2000));
+        if (window._portalToken) {
+          document.getElementById('user-name').textContent = window._portalEmail || '';
+          window._appBooted = true;
+          return;
+        }
+        showError('Geen sessie gevonden. Meld aan via het MijnDigiKAntoor portaal.');
+        return;
+      }
       return;
     }
-    // Geen MSAL sessie — wacht op portaal token via postMessage
-    // renderAgenda wordt aangeroepen door de token bridge
-    if (window.self !== window.top && !window._portalToken) {
-      showError('Laden…');
-    }
+    const account = resp?.account || accounts[0] || { username: window._portalEmail || '' };
+    document.getElementById('user-name').textContent = account.name || account.username || '';
+    window._appBooted = true;
   } catch(e) {
     showError('Initialisatie mislukt: ' + e.message);
   }
@@ -800,22 +768,6 @@ function eventsVoorDatum(datum) {
   });
 }
 
-
-function voegFotoToe(di, takenKol, dd) {
-  var input = document.createElement('input');
-  input.type = 'file'; input.accept = 'image/*';
-  input.onchange = function(e) {
-    var file = e.target.files[0]; if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      if (!dd.fotos) dd.fotos = [];
-      dd.fotos.push(ev.target.result);
-      autoSave(); renderAgenda();
-    };
-    reader.readAsDataURL(file);
-  };
-  input.click();
-}
 function syncHeenEnWeer() {
   var wd = getWeekData(currentDK, weekOffset);
   var cb = document.getElementById('heen-en-weer');
@@ -867,14 +819,10 @@ function renderAgenda() {
   }
 
   // Achterzijde (pagina 2 bij afdrukken): enkel voor klassen met 'tegen' aan
-  var heeftTegen = !!meta.tegen;
-  document.body.classList.toggle('heeft-achterzijde-dk14', !heeftTegen);
-  document.body.classList.toggle('heeft-achterzijde-dk56', heeftTegen);
-  document.body.classList.remove('heeft-achterzijde');
+  document.body.classList.toggle('heeft-achterzijde', !!meta.tegen);
   if (meta.tegen) {
     var friDate = new Date(monday); friDate.setDate(friDate.getDate() + 4);
-    var planWeekEl = document.getElementById('plan-week-lbl');
-    if (planWeekEl) planWeekEl.textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
+    document.getElementById('plan-week-lbl').textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
     var planBody = document.getElementById('plan-dagen');
     planBody.innerHTML = DAGEN_NL.map(function(dagNaam, di) {
       var d = new Date(monday); d.setDate(d.getDate() + di);
@@ -915,27 +863,6 @@ function renderAgenda() {
     btnAdd.onclick = function(e) { toonPlatformMenu(e, di, takenKol, btnAdd, meta, platforms); };
     takenKol.appendChild(btnAdd);
 
-    // Foto toevoegen knop
-    var btnFoto = document.createElement('button'); btnFoto.className = 'btn-add btn-foto';
-    btnFoto.innerHTML = '📷 Foto';
-    btnFoto.style.cssText = 'margin-top:4px;font-size:11px;';
-    btnFoto.onclick = function() { voegFotoToe(di, takenKol, dd); };
-    takenKol.appendChild(btnFoto);
-
-    // Toon bestaande foto's
-    (dd.fotos || []).forEach(function(src, fi) {
-      var fotoDiv = document.createElement('div');
-      fotoDiv.style.cssText = 'position:relative;margin-top:4px;display:inline-block;';
-      var img = document.createElement('img');
-      img.src = src; img.style.cssText = 'max-width:100%;max-height:80px;border-radius:4px;border:1px solid #ddd;';
-      var del = document.createElement('button');
-      del.textContent = '✕'; del.title = 'Verwijder foto';
-      del.style.cssText = 'position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;line-height:1;padding:0;';
-      del.onclick = function() { dd.fotos.splice(fi,1); autoSave(); renderAgenda(); };
-      fotoDiv.appendChild(img); fotoDiv.appendChild(del);
-      takenKol.appendChild(fotoDiv);
-    });
-
     body.appendChild(takenKol);
 
     // Ik denk aan kolom
@@ -950,9 +877,6 @@ function renderAgenda() {
     }
 
     addCheck('hwc', 'Agenda gelezen', dd.hwCheck, function(e) { dd.hwCheck = e.target.checked; autoSave(); });
-    // Heen en weer per dag (voor alle graden)
-    if (!dd.heenEnWeer_dag) dd.heenEnWeer_dag = false;
-    addCheck('hew', 'Heen en weer', dd.heenEnWeer_dag, function(e) { dd.heenEnWeer_dag = e.target.checked; autoSave(); });
     if (isZwem) addCheck('zwem', 'Zwemzak', dd.zwem, function(e) { dd.zwem = e.target.checked; autoSave(); });
     if (isTurnen) addCheck('turnen', 'Turnzak', dd.turnen, function(e) { dd.turnen = e.target.checked; autoSave(); });
     if (meta.brief) addCheck('brief', 'Brief', dd.brief, function(e) { dd.brief = e.target.checked; autoSave(); });
@@ -960,7 +884,7 @@ function renderAgenda() {
 
     // Handtekening ouder staat eenmalig in de footer
 
-    // Vrij tekstvak in "Ik denk aan"
+    // Vrije notitie
     var tekstVak = document.createElement('textarea');
     tekstVak.className = 'denk-tekst';
     tekstVak.placeholder = 'Vrije notitie…';
@@ -1003,7 +927,7 @@ function maakItemRij(di, idx, item, heeftTegen) {
   img.src = ICONS[item.platform] || ''; img.alt = pInfo.label || item.platform; img.title = pInfo.label || item.platform;
   r.appendChild(img);
 
-  // Tekstveld (textarea voor meerdere regels)
+  // Tekstveld
   var inp = document.createElement('textarea'); inp.className = 'item-input';
   inp.placeholder = (pInfo.label || item.platform) + '…';
   inp.value = item.tekst || '';
@@ -1016,8 +940,8 @@ function maakItemRij(di, idx, item, heeftTegen) {
   };
   r.appendChild(inp);
 
-  // Aanvink checkbox (altijd tonen voor eigen toevoegingen)
-  if (heeftTegen) {
+  // Tegen checkbox (alleen voor platforms met t:true en als DK tegen heeft)
+  if (heeftTegen && pInfo.t) {
     var cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'item-tegen';
     cb.checked = item.tegen || false;
     cb.title = 'Tegen';
@@ -1140,8 +1064,7 @@ async function opslaan() {
   saveLocal();
   var k = weekKey(currentDK, weekOffset);
   var data = agendaData[k];
-  if (!data) { toonMsg('✓ Lokaal opgeslagen', false); return; }
-  if (!currentAccount && !window._portalToken) { toonMsg('✓ Lokaal opgeslagen', false); return; }
+  if (!data || !currentAccount) { toonMsg('✓ Lokaal opgeslagen', false); return; }
   var ok = await saveToSP(currentDK, weekKey(currentDK, weekOffset), data);
   toonMsg(ok ? '✓ Opgeslagen in SharePoint' : '⚠ Alleen lokaal opgeslagen', !ok);
 }
@@ -1162,13 +1085,10 @@ document.getElementById('prev-week').onclick = function() { weekOffset--; render
 document.getElementById('next-week').onclick = function() { weekOffset++; renderAgenda(); };
 document.getElementById('btn-save').onclick = opslaan;
 document.getElementById('btn-print').onclick = function() {
-  // Verberg lege vrije notities bij afdrukken
   document.querySelectorAll('.denk-tekst').forEach(function(el) {
-    if (!el.value || !el.value.trim()) el.style.display = 'none';
-    else el.style.display = '';
+    el.style.display = (!el.value || !el.value.trim()) ? 'none' : '';
   });
   window.print();
-  // Herstel na afdrukken
   setTimeout(function() {
     document.querySelectorAll('.denk-tekst').forEach(function(el) { el.style.display = ''; });
   }, 1000);
@@ -1197,9 +1117,8 @@ document.querySelectorAll('.tab').forEach(function(tab) {
 window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('app-title').textContent = CONFIG.appTitle;
   loadLocal();
-  renderAgenda(); // Toon agenda direct met lokale data
   boot().then(function() {
-    renderAgenda(); // Herteken na login
+    renderAgenda();
     loadKlasInstellingen(currentDK).then(function(v){ if (v) renderAgenda(); });
   });
   // Kalender asynchroon laden — herteken "Ik denk aan" na laden
@@ -1222,8 +1141,6 @@ function openHelp(){document.getElementById('helpOverlay').classList.add('on');d
 function closeHelp(){document.getElementById('helpOverlay').classList.remove('on');document.getElementById('helpDrawer').classList.remove('on');document.body.style.overflow='';}
 
 async function openInstellingen(){
-  document.getElementById('instPanel').style.display = 'block';
-  document.getElementById('instOverlay').style.display = 'block';
   document.getElementById('inst-klas-lbl').textContent = 'DK' + currentDK;
   if (!KLAS_META_OVERRIDES[currentDK]) await loadKlasInstellingen(currentDK);
   var meta = getEffectieveMeta(currentDK);
@@ -1250,18 +1167,17 @@ async function opslaanInstellingen(){
 function showHelpTab(id,btn){document.querySelectorAll('.help-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.help-tab').forEach(t=>t.classList.remove('active'));document.getElementById('help-'+id).classList.add('active');btn.classList.add('active');}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeHelp();});
 
-window.addEventListener('message', function(event) {
-  if (event.origin !== 'https://lon-ka.github.io') return;
-  if (!event.data) return;
-  if (event.data.type === 'OPEN_HELP') { if(typeof openHelp==='function') openHelp(); return; }
-  if (event.data.type !== 'MSAL_TOKEN') return;
-  if (window._portalToken) return;
-  window._portalToken = event.data.token;
-  window._portalEmail = event.data.email || '';
-  document.getElementById('user-name').textContent = event.data.email || '';
-  window._appBooted = true;
-  renderAgenda();
-  loadKlasInstellingen(currentDK).then(function(v){ if (v) renderAgenda(); });
+document.addEventListener('DOMContentLoaded', function() {
+  window.addEventListener('message', function(event) {
+    if (event.origin !== 'https://lon-ka.github.io') return;
+    if (!event.data) return;
+    if (event.data.type === 'OPEN_HELP') { if(typeof openHelp==='function') openHelp(); return; }
+    if (event.data.type !== 'MSAL_TOKEN') return;
+    if (window._portalToken) return;
+    window._portalToken = event.data.token;
+    window._portalEmail = event.data.email || '';
+    if (!window._appBooted && typeof boot==='function') boot();
+  });
 });
 
 </script>
