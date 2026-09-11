@@ -212,7 +212,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 }
 .print-hdr{display:none;}
 
-#planning-achterzijde{display:none;}
+#planning-achterzijde,#planning-achterzijde-hoog{display:none;}
+.plan-hw-blok{margin-bottom:10px;}
+.plan-hw-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;font-weight:700;margin-bottom:4px;}
+.plan-hw-tekst{border:1.5px solid #bbb;border-radius:6px;min-height:80px;}
+.plan-tijd-col{width:40px;background:#e8f0fa;font-size:9px;font-weight:700;color:var(--blue);text-align:center;border-top:1px solid #ccc;padding:4px;}
 .plan-hdr{text-align:center;margin-bottom:14px;border-bottom:2px solid var(--blue);padding-bottom:8px;}
 .plan-hdr h1{font-family:'Arcena',sans-serif;font-size:24px;color:var(--blue);margin:0 0 4px;}
 .plan-naam{font-size:12px;color:var(--muted);}
@@ -231,9 +235,15 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .plan-handtek{flex:1;display:flex;align-items:flex-start;justify-content:center;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#999;min-height:38px;}
 
 @media print {
-  body.heeft-achterzijde #planning-achterzijde{
+  body.heeft-achterzijde-dk14 #planning-achterzijde{
     display:block;
     page-break-before:always;
+    margin-left:18mm;
+  }
+  body.heeft-achterzijde-dk56 #planning-achterzijde-hoog{
+    display:block;
+    page-break-before:always;
+    margin-left:18mm;
   }
 }
 
@@ -408,21 +418,52 @@ window.addEventListener('message', function(event) {
   </div>
 
   <!-- Achterzijde (pagina 2 bij afdrukken) — enkel voor klassen met 'tegen' (2de/3de graad) -->
+  <!-- Achterzijde DK1-4: Heen en weer + handtekening -->
   <div id="planning-achterzijde">
     <div class="plan-hdr">
-      <h1>Planning — week <span id="plan-week-lbl"></span></h1>
+      <h1>Week <span id="plan-week-lbl"></span></h1>
+      <div class="plan-naam">Naam: <span class="plan-naamlijn"></span></div>
+    </div>
+    <div class="plan-hw-blok">
+      <div class="plan-hw-label">Heen en weer</div>
+      <div class="plan-hw-tekst"></div>
+    </div>
+    <div class="plan-onder">
+      <div class="plan-handtek" style="justify-content:flex-start;padding-left:8px;">Handtekening ouder</div>
+    </div>
+  </div>
+
+  <!-- Achterzijde DK5-6: Planning + Heen en weer + handtekening -->
+  <div id="planning-achterzijde-hoog">
+    <div class="plan-hdr">
+      <h1>Mijn persoonlijke planning — week <span id="plan-week-lbl-hoog"></span></h1>
       <div class="plan-naam">Naam: <span class="plan-naamlijn"></span></div>
     </div>
     <table class="plan-tabel">
-      <thead><tr><th class="plan-th-dag"></th><th>Mijn planning / notities</th><th>Heen en weer</th></tr></thead>
-      <tbody id="plan-dagen"></tbody>
+      <thead>
+        <tr>
+          <th style="width:40px;"></th>
+          <th>Maandag</th><th>Dinsdag</th><th>Woensdag</th><th>Donderdag</th><th>Vrijdag</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="plan-tijd-col">08:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="plan-tijd-col">09:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="plan-tijd-col">10:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="plan-tijd-col">11:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="plan-tijd-col">12:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="plan-tijd-col">13:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="plan-tijd-col">14:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="plan-tijd-col">15:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="plan-tijd-col">16:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+      </tbody>
     </table>
+    <div class="plan-hw-blok" style="margin-top:10px;">
+      <div class="plan-hw-label">Heen en weer</div>
+      <div class="plan-hw-tekst"></div>
+    </div>
     <div class="plan-onder">
-      <div class="plan-opm">
-        <div class="plan-opm-label">Opmerkingen</div>
-        <div class="plan-opm-box"></div>
-      </div>
-      <div class="plan-handtek">Handtekening ouder</div>
+      <div class="plan-handtek" style="justify-content:flex-start;padding-left:8px;">Handtekening ouder</div>
     </div>
   </div>
 
@@ -821,10 +862,15 @@ function renderAgenda() {
   }
 
   // Achterzijde (pagina 2 bij afdrukken): enkel voor klassen met 'tegen' aan
-  document.body.classList.toggle('heeft-achterzijde', !!meta.tegen);
+  var heeftTegen = !!meta.tegen;
+  document.body.classList.toggle('heeft-achterzijde-dk14', !heeftTegen);
+  document.body.classList.toggle('heeft-achterzijde-dk56', heeftTegen);
+  document.body.classList.remove('heeft-achterzijde');
   if (meta.tegen) {
     var friDate = new Date(monday); friDate.setDate(friDate.getDate() + 4);
     document.getElementById('plan-week-lbl').textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
+    var planWeekElH = document.getElementById('plan-week-lbl-hoog');
+    if (planWeekElH) planWeekElH.textContent = planWeekEl ? planWeekEl.textContent : '';
     var planBody = document.getElementById('plan-dagen');
     planBody.innerHTML = DAGEN_NL.map(function(dagNaam, di) {
       var d = new Date(monday); d.setDate(d.getDate() + di);
