@@ -656,6 +656,8 @@ function getEffectieveMeta(dk) {
     rk:     basis.rk,
     zwem:   (typeof override.zwem === 'number')   ? override.zwem   : basis.zwem,
     turnen: (typeof override.turnen === 'number') ? override.turnen : (typeof basis.turnen === 'number' ? basis.turnen : -1),
+    extraNaam: override.extraNaam || basis.extraNaam || '',
+    extraDag:  (typeof override.extraDag === 'number') ? override.extraDag : (typeof basis.extraDag === 'number' ? basis.extraDag : -1),
   };
 }
 
@@ -680,7 +682,7 @@ function getWeekData(dk, offset) {
 }
 function getDagData(dk, offset, di) {
   var wd = getWeekData(dk, offset);
-  if (!wd.dagen[di]) wd.dagen[di] = { items: [], hwCheck: false, zwem: false, brief: false, rk: false };
+  if (!wd.dagen[di]) wd.dagen[di] = { items: [], hwCheck: false, zwem: false, brief: false, rk: false, extraCheck: false };
   return wd.dagen[di];
 }
 
@@ -878,6 +880,8 @@ function renderAgenda() {
 
     addCheck('hwc', 'Agenda gelezen', dd.hwCheck, function(e) { dd.hwCheck = e.target.checked; autoSave(); });
     if (isZwem) addCheck('zwem', 'Zwemzak', dd.zwem, function(e) { dd.zwem = e.target.checked; autoSave(); });
+    var isExtra = meta.extraNaam && meta.extraDag === di;
+    if (isExtra) addCheck('extra', meta.extraNaam, dd.extraCheck, function(e) { dd.extraCheck = e.target.checked; autoSave(); });
     if (isTurnen) addCheck('turnen', 'Turnzak', dd.turnen, function(e) { dd.turnen = e.target.checked; autoSave(); });
     if (meta.brief) addCheck('brief', 'Brief', dd.brief, function(e) { dd.brief = e.target.checked; autoSave(); });
     if (meta.rk) addCheck('rk', 'Rode kaart', dd.rk, function(e) { dd.rk = e.target.checked; autoSave(); });
@@ -1146,6 +1150,8 @@ async function openInstellingen(){
   var meta = getEffectieveMeta(currentDK);
   document.getElementById('inst-zwem').value = String(meta.zwem);
   document.getElementById('inst-turnen').value = String(meta.turnen);
+  document.getElementById('inst-extra-naam').value = meta.extraNaam || '';
+  document.getElementById('inst-extra-dag').value = String(meta.extraDag !== undefined ? meta.extraDag : -1);
   document.getElementById('instOverlay').style.display = 'block';
   document.getElementById('instPanel').style.display = 'block';
 }
@@ -1157,8 +1163,10 @@ async function opslaanInstellingen(){
   var bestaand = KLAS_META_OVERRIDES[currentDK] || {};
   var instellingen = {
     _spId:  bestaand._spId,
-    zwem:   parseInt(document.getElementById('inst-zwem').value, 10),
-    turnen: parseInt(document.getElementById('inst-turnen').value, 10),
+    zwem:      parseInt(document.getElementById('inst-zwem').value, 10),
+    turnen:    parseInt(document.getElementById('inst-turnen').value, 10),
+    extraNaam: document.getElementById('inst-extra-naam').value.trim(),
+    extraDag:  parseInt(document.getElementById('inst-extra-dag').value, 10),
   };
   var ok = await saveKlasInstellingen(currentDK, instellingen);
   if (ok) { closeInstellingen(); renderAgenda(); }
@@ -1208,6 +1216,19 @@ document.addEventListener('DOMContentLoaded', function() {
     <option value="3">Donderdag</option>
     <option value="4">Vrijdag</option>
   </select>
+  <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;margin-top:12px;">Extra mee te brengen</label>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <input id="inst-extra-naam" type="text" placeholder="bv. Potjes, Zwembril…" maxlength="20"
+           style="flex:1;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-family:inherit;font-size:13px;">
+    <select id="inst-extra-dag" style="width:130px;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-family:inherit;font-size:13px;">
+      <option value="-1">Geen dag</option>
+      <option value="0">Maandag</option>
+      <option value="1">Dinsdag</option>
+      <option value="2">Woensdag</option>
+      <option value="3">Donderdag</option>
+      <option value="4">Vrijdag</option>
+    </select>
+  </div>
   <button onclick="opslaanInstellingen()" style="width:100%;background:#7B5EA7;color:#fff;border:none;border-radius:9px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;">Opslaan</button>
 </div>
 
