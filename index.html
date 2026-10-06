@@ -135,7 +135,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 /* ITEM RIJ (toegevoegd platform) */
 .item-rij{display:flex;align-items:center;gap:5px;padding:2px 0;}
 .item-icon{width:20px;height:20px;object-fit:contain;flex-shrink:0;border-radius:3px;}
-.item-input{flex:1;border:none;border-bottom:1px solid #e0e0e0;background:transparent;font-size:12px;color:var(--text);padding:1px 3px;outline:none;min-width:0;}
+.item-input{flex:1;border:none;border-bottom:1px solid #e0e0e0;background:transparent;font-size:12px;color:var(--text);padding:1px 3px;outline:none;min-width:0;white-space:pre-wrap;word-break:break-word;}
 .item-input:focus{border-bottom-color:var(--blue);}
 .item-input::placeholder{color:#bbb;}
 .item-del{width:16px;height:16px;border:none;background:none;color:#ccc;cursor:pointer;font-size:13px;line-height:1;padding:0;flex-shrink:0;}
@@ -166,8 +166,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .check-rij label{font-size:11px;color:var(--muted);cursor:pointer;}
 .handtek{border:1px solid #ccc;border-radius:4px;background:#f5f5f5;padding:5px;font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#999;text-align:center;min-height:28px;display:flex;align-items:center;justify-content:center;}
 #agenda-footer{display:flex;align-items:stretch;gap:10px;margin-top:10px;padding-top:10px;border-top:1.5px solid #ccc;}
-.footer-heen{display:flex;align-items:center;gap:7px;padding:8px 14px;border:1px solid var(--border);border-radius:6px;background:var(--surface);white-space:nowrap;}
+.footer-heen{display:flex;flex-direction:column;gap:4px;padding:8px 14px;border:1px solid var(--border);border-radius:6px;background:var(--surface);min-width:220px;}
 .footer-heen label{font-size:12px;color:var(--text);cursor:pointer;}
+.heen-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.heen-tekstvak{width:100%;border:1px solid var(--border);border-radius:5px;background:var(--white);font-size:12px;color:var(--text);padding:5px 7px;resize:vertical;min-height:54px;font-family:inherit;outline:none;}
+.heen-tekstvak:focus{border-color:var(--blue);}
 .footer-heen input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--blue);}
 .footer-handtek{flex:1;display:flex;align-items:flex-start;justify-content:flex-start;padding-left:8px;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#999;min-height:72px;}
 
@@ -201,6 +204,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
   .dag-rij{border-bottom:1px solid #aaa;flex:1;}
   .dag-label{background:#e8f0fa!important;}
   .footer-handtek{min-height:40px;border:1.5px solid #bbb;}
+  .footer-heen{flex:1;}
+  .heen-tekstvak{min-height:120px;resize:none;}
   #agenda-footer{margin-top:6px;padding-top:6px;}
   @page{size:A4 portrait;margin:8mm 8mm;}
   #overzicht-panel{display:none;}
@@ -215,7 +220,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 #planning-achterzijde,#planning-achterzijde-hoog{display:none;}
 .plan-hw-blok{margin-bottom:10px;}
 .plan-hw-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;font-weight:700;margin-bottom:4px;}
-.plan-hw-tekst{border:1.5px solid #bbb;border-radius:6px;min-height:80px;}
+.plan-hw-tekst{border:1.5px solid #bbb;border-radius:6px;min-height:80px;padding:8px 10px;font-size:12px;white-space:pre-wrap;}
 .plan-tijd-col{width:40px;background:#e8f0fa;font-size:9px;font-weight:700;color:var(--blue);text-align:center;border-top:1px solid #ccc;padding:4px;}
 .plan-hdr{text-align:center;margin-bottom:14px;border-bottom:2px solid var(--blue);padding-bottom:8px;}
 .plan-hdr h1{font-family:'Arcena',sans-serif;font-size:24px;color:var(--blue);margin:0 0 4px;}
@@ -235,11 +240,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .plan-handtek{flex:1;display:flex;align-items:flex-start;justify-content:center;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#999;min-height:38px;}
 
 @media print {
-  body.heeft-achterzijde-dk14 #planning-achterzijde{
-    display:block;
-    page-break-before:always;
-    margin-left:18mm;
-  }
+  body.heeft-achterzijde-dk14 #planning-achterzijde-hoog,
   body.heeft-achterzijde-dk56 #planning-achterzijde-hoog{
     display:block;
     page-break-before:always;
@@ -409,15 +410,15 @@ window.addEventListener('message', function(event) {
       <div id="dagen"></div>
       <div id="agenda-footer">
         <div class="footer-heen">
-          <input type="checkbox" id="heen-en-weer">
-          <label for="heen-en-weer">Heen en weer</label>
+          <label class="heen-lbl">Heen en weer</label>
+          <textarea id="heen-en-weer" class="heen-tekstvak" placeholder="Bericht aan ouders…" rows="3"></textarea>
         </div>
         <div class="footer-handtek">Handtekening ouder</div>
       </div>
     </div>
   </div>
 
-  <!-- Achterzijde (pagina 2 bij afdrukken) — enkel voor klassen met 'tegen' (2de/3de graad) -->
+  <!-- Achterzijde (pagina 2 bij afdrukken) — alle klassen -->
   <!-- Achterzijde DK1-4: Heen en weer + handtekening -->
   <div id="planning-achterzijde">
     <div class="plan-hdr">
@@ -813,10 +814,17 @@ function eventsVoorDatum(datum) {
 
 function syncHeenEnWeer() {
   var wd = getWeekData(currentDK, weekOffset);
-  var cb = document.getElementById('heen-en-weer');
-  if (!cb) return;
-  cb.checked = wd.heenEnWeer || false;
-  cb.onchange = function(e) { wd.heenEnWeer = e.target.checked; autoSave(); };
+  var ta = document.getElementById('heen-en-weer');
+  if (!ta) return;
+  ta.value = wd.heenEnWeer || '';
+  ta.oninput = function(e) {
+    wd.heenEnWeer = e.target.value;
+    var hwT = document.querySelector('.plan-hw-tekst');
+    if (hwT) hwT.textContent = e.target.value;
+    var hwTH = document.querySelectorAll('#planning-achterzijde-hoog .plan-hw-tekst');
+    hwTH.forEach(function(el){ el.textContent = e.target.value; });
+    autoSave();
+  };
 }
 
 function renderCalItems(wrap, datum) {
@@ -866,11 +874,11 @@ function renderAgenda() {
   document.body.classList.toggle('heeft-achterzijde-dk14', !heeftTegen);
   document.body.classList.toggle('heeft-achterzijde-dk56', heeftTegen);
   document.body.classList.remove('heeft-achterzijde');
-  if (meta.tegen) {
+  {
     var friDate = new Date(monday); friDate.setDate(friDate.getDate() + 4);
     document.getElementById('plan-week-lbl').textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
     var planWeekElH = document.getElementById('plan-week-lbl-hoog');
-    if (planWeekElH) planWeekElH.textContent = planWeekEl ? planWeekEl.textContent : '';
+    if (planWeekElH) planWeekElH.textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
     var planBody = document.getElementById('plan-dagen');
     planBody.innerHTML = DAGEN_NL.map(function(dagNaam, di) {
       var d = new Date(monday); d.setDate(d.getDate() + di);
@@ -879,6 +887,12 @@ function renderAgenda() {
   }
 
   syncHeenEnWeer();
+  // Sync heen-en-weer tekst naar achterzijde
+  var wd = getWeekData(currentDK, weekOffset);
+  var hwTekst = document.querySelector('.plan-hw-tekst');
+  if (hwTekst) hwTekst.textContent = wd.heenEnWeer || '';
+  var hwTekstHoog = document.querySelectorAll('#planning-achterzijde-hoog .plan-hw-tekst');
+  hwTekstHoog.forEach(function(el){ el.textContent = wd.heenEnWeer || ''; });
   DAGEN_NL.forEach(function(dagNaam, di) {
     var date = new Date(monday); date.setDate(date.getDate() + di);
     var dd = getDagData(currentDK, weekOffset, di);
@@ -988,6 +1002,7 @@ function maakItemRij(di, idx, item, heeftTegen) {
     e.target.style.height = e.target.scrollHeight + 'px';
     dd.items[idx].tekst = e.target.value; autoSave();
   };
+  setTimeout(function(){ inp.style.height='auto'; inp.style.height=inp.scrollHeight+'px'; },0);
   r.appendChild(inp);
 
   // Tegen checkbox (alleen voor platforms met t:true en als DK tegen heeft)
