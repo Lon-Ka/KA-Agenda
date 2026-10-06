@@ -876,11 +876,12 @@ function renderAgenda() {
   document.body.classList.remove('heeft-achterzijde');
   {
     var friDate = new Date(monday); friDate.setDate(friDate.getDate() + 4);
-    document.getElementById('plan-week-lbl').textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
+    var planWeekEl = document.getElementById('plan-week-lbl');
+    if (planWeekEl) planWeekEl.textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
     var planWeekElH = document.getElementById('plan-week-lbl-hoog');
     if (planWeekElH) planWeekElH.textContent = fmtDate(monday) + ' – ' + fmtDate(friDate);
     var planBody = document.getElementById('plan-dagen');
-    planBody.innerHTML = DAGEN_NL.map(function(dagNaam, di) {
+    if (planBody) planBody.innerHTML = DAGEN_NL.map(function(dagNaam, di) {
       var d = new Date(monday); d.setDate(d.getDate() + di);
       return '<tr><td class="plan-dag-label">' + DAGEN_KRT[di] + '<span class="plan-dag-datum">' + fmtDate(d) + '</span></td><td></td><td class="plan-col-heen"></td></tr>';
     }).join('');
