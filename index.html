@@ -346,20 +346,6 @@ window.addEventListener('message', function(event) {
   if (!event.data || event.data.type !== 'MSAL_TOKEN') return;
   if (window._portalToken) return;
   window._portalToken = event.data.token;
-    document.body.classList.add('in-portal');
-  window._portalEmail = event.data.email || '';
-  if (!window._appBooted) boot();
-});
-</script>
-<script>
-window._portalToken = null;
-window._portalEmail = '';
-window._appBooted = false;
-window.addEventListener('message', function(event) {
-  if (event.origin !== 'https://lon-ka.github.io') return;
-  if (!event.data || event.data.type !== 'MSAL_TOKEN') return;
-  if (window._portalToken) return;
-  window._portalToken = event.data.token;
   window._portalEmail = event.data.email || '';
   document.getElementById('user-name').textContent = event.data.email || '';
   window._appBooted = true;
@@ -1237,17 +1223,11 @@ async function opslaanInstellingen(){
 function showHelpTab(id,btn){document.querySelectorAll('.help-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.help-tab').forEach(t=>t.classList.remove('active'));document.getElementById('help-'+id).classList.add('active');btn.classList.add('active');}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeHelp();});
 
-document.addEventListener('DOMContentLoaded', function() {
-  window.addEventListener('message', function(event) {
-    if (event.origin !== 'https://lon-ka.github.io') return;
-    if (!event.data) return;
-    if (event.data.type === 'OPEN_HELP') { if(typeof openHelp==='function') openHelp(); return; }
-    if (event.data.type !== 'MSAL_TOKEN') return;
-    if (window._portalToken) return;
-    window._portalToken = event.data.token;
-    window._portalEmail = event.data.email || '';
-    if (!window._appBooted && typeof boot==='function') boot();
-  });
+// OPEN_HELP bericht vanuit portaal
+window.addEventListener('message', function(event) {
+  if (event.origin !== 'https://lon-ka.github.io') return;
+  if (!event.data) return;
+  if (event.data.type === 'OPEN_HELP') { if(typeof openHelp==='function') openHelp(); }
 });
 
 </script>
