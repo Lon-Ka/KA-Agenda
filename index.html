@@ -240,28 +240,39 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
 .plan-handtek{flex:1;display:flex;align-items:flex-start;justify-content:center;border:1.5px solid #bbb;border-radius:6px;background:#f5f5f5;padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#999;min-height:38px;}
 
 /* === DK5-6 achterzijde weekplanning === */
-.plan56-tabel{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:10px;}
+#planning-achterzijde-hoog{display:flex;flex-direction:column;}
+.plan56-tabel{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;flex:1;}
 .plan56-tabel thead th{background:#dbe8f8;color:var(--blue);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:5px 6px;border:1px solid #b0c4de;text-align:left;}
-.plan56-dag-hdr{width:28px;}
-.plan56-planning-hdr{width:55%;}
-.plan56-denk-hdr{width:28%;}
-.plan56-tijd-hdr{width:12%;}
-.plan56-dag-label{background:#dbe8f8;font-weight:700;color:var(--blue);text-align:center;writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;letter-spacing:.08em;padding:4px 2px;border:1px solid #b0c4de;white-space:nowrap;}
-.plan56-planning-cel{border:1px solid #ccc;border-left:none;min-height:22px;height:22px;padding:2px 4px;}
-.plan56-denk-cel{border:1px solid #ccc;border-left:none;min-height:88px;vertical-align:top;padding:4px;}
-.plan56-tijd-cel{border:1px solid #ccc;border-left:none;min-height:22px;height:22px;padding:2px 4px;}
-.plan56-dag-rij td{vertical-align:middle;}
-.plan56-onder{display:flex;align-items:stretch;gap:10px;margin-top:6px;}
-.plan56-hw-blok{flex:1;border:1.5px solid #bbb;border-radius:6px;padding:6px 10px;min-height:38px;}
+.plan56-dag-hdr{width:26px;}
+.plan56-planning-hdr{width:52%;}
+.plan56-denk-hdr{width:30%;}
+.plan56-tijd-hdr{/* rest */}
+.plan56-tabel tbody{height:100%;}
+.plan56-dag-label{background:#dbe8f8;font-weight:700;color:var(--blue);text-align:center;writing-mode:vertical-rl;transform:rotate(180deg);font-size:8px;letter-spacing:.08em;padding:4px 2px;border:1px solid #b0c4de;white-space:nowrap;}
+.plan56-planning-cel{border:1px solid #ccc;border-left:none;padding:2px 4px;}
+.plan56-denk-cel{border:1px solid #ccc;border-left:none;vertical-align:top;padding:4px;}
+.plan56-tijd-cel{border:1px solid #ccc;border-left:none;padding:2px 4px;}
+.plan56-onder{display:flex;align-items:stretch;gap:10px;margin-top:6px;flex-shrink:0;}
+.plan56-hw-blok{flex:1;border:1.5px solid #bbb;border-radius:6px;padding:4px 8px;min-height:50px;display:flex;flex-direction:column;}
 .plan56-hw-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:3px;}
+.plan56-hw-tekstvak{flex:1;border:none;outline:none;resize:none;font-size:10px;font-family:inherit;background:transparent;width:100%;min-height:36px;}
 .plan-hw-tekst{min-height:24px;}
 
 @media print {
   body.heeft-achterzijde-dk14 #planning-achterzijde-hoog,
   body.heeft-achterzijde-dk56 #planning-achterzijde-hoog{
-    display:block;
+    display:flex;
+    flex-direction:column;
     page-break-before:always;
     margin-left:18mm;
+    height:calc(297mm - 20mm);
+  }
+  body.heeft-achterzijde-dk56 #planning-achterzijde-hoog .plan56-tabel{
+    flex:1;
+    height:100%;
+  }
+  body.heeft-achterzijde-dk56 #planning-achterzijde-hoog .plan56-tabel tr{
+    height:calc((100% - 32px) / 20);
   }
   /* Verberg tekenteller bij afdrukken */
   .denk-teller { display: none !important; }
@@ -498,7 +509,7 @@ window.addEventListener('message', function(event) {
     <div class="plan56-onder">
       <div class="plan56-hw-blok">
         <div class="plan56-hw-label">Heen en weer</div>
-        <div class="plan-hw-tekst"></div>
+        <textarea id="heen-en-weer-hoog" class="plan56-hw-tekstvak" placeholder="Bericht aan ouders…" rows="3"></textarea>
       </div>
       <div class="plan-handtek">Handtekening ouder</div>
     </div>
@@ -784,10 +795,23 @@ function syncHeenEnWeer() {
     wd.heenEnWeer = e.target.value;
     var hwT = document.querySelector('.plan-hw-tekst');
     if (hwT) hwT.textContent = e.target.value;
-    var hwTH = document.querySelectorAll('#planning-achterzijde-hoog .plan-hw-tekst');
-    hwTH.forEach(function(el){ el.textContent = e.target.value; });
+    // Sync naar achterzijde DK5-6 textarea
+    var taHoog = document.getElementById('heen-en-weer-hoog');
+    if (taHoog) taHoog.value = e.target.value;
     autoSave();
   };
+  // Sync ook de DK5-6 achterzijde textarea bij laden
+  var taHoog = document.getElementById('heen-en-weer-hoog');
+  if (taHoog) {
+    taHoog.value = wd.heenEnWeer || '';
+    taHoog.oninput = function(e) {
+      wd.heenEnWeer = e.target.value;
+      ta.value = e.target.value;
+      var hwT = document.querySelector('.plan-hw-tekst');
+      if (hwT) hwT.textContent = e.target.value;
+      autoSave();
+    };
+  }
 }
 
 
@@ -834,12 +858,10 @@ function renderAgenda() {
   }
 
   syncHeenEnWeer();
-  // Sync heen-en-weer tekst naar achterzijde
+  // Sync heen-en-weer tekst naar achterzijde DK1-4
   var wd = getWeekData(currentDK, weekOffset);
   var hwTekst = document.querySelector('.plan-hw-tekst');
   if (hwTekst) hwTekst.textContent = wd.heenEnWeer || '';
-  var hwTekstHoog = document.querySelectorAll('#planning-achterzijde-hoog .plan-hw-tekst');
-  hwTekstHoog.forEach(function(el){ el.textContent = wd.heenEnWeer || ''; });
   DAGEN_NL.forEach(function(dagNaam, di) {
     var date = new Date(monday); date.setDate(date.getDate() + di);
     var dd = getDagData(currentDK, weekOffset, di);
