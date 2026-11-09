@@ -210,6 +210,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
   @page{size:A4 portrait;margin:8mm 8mm;}
   #overzicht-panel{display:none;}
   .btn-add,.item-del{display:none!important;}
+  .item-input{overflow:visible;height:auto!important;}
   #agenda-wrap{min-height:calc(297mm - 16mm);display:flex;flex-direction:column;}
   #dagen{flex:1;display:flex;flex-direction:column;}
   .dag-body{min-height:0;flex:1;}
@@ -975,14 +976,7 @@ function maakItemRij(di, idx, item, heeftTegen) {
   cbDone.onchange = function(e) { dd.items[idx].done = e.target.checked; autoSave(); };
   r.appendChild(cbDone);
 
-  // Tegen checkbox (alleen voor platforms met t:true en als DK tegen heeft)
-  if (heeftTegen && pInfo.t) {
-    var cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'item-tegen';
-    cb.checked = item.tegen || false;
-    cb.title = 'Tegen';
-    cb.onchange = function(e) { dd.items[idx].tegen = e.target.checked; autoSave(); };
-    r.appendChild(cb);
-  }
+
 
   // Verwijder knop
   var del = document.createElement('button'); del.className = 'item-del'; del.textContent = '×';
