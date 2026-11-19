@@ -277,6 +277,13 @@ body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;background:var(--bg)
   }
   /* Verberg tekenteller bij afdrukken */
   .denk-teller { display: none !important; }
+  /* Foto-frame: upload-knop verbergen, foto zelf wel tonen */
+  .foto-upload-btn { display: none !important; }
+  .foto-img { max-height: 90px !important; }
+  /* Verberg textareas bij afdrukken, toon print-spiegeldivs */
+  .heen-tekstvak { display: none !important; }
+  .plan56-hw-tekstvak { display: none !important; }
+  .heen-print-tekst { display: block !important; }
   /* Verberg Heen en Weer vooraan voor DK5-6 */
   body.heeft-achterzijde-dk56 #agenda-footer .footer-heen { display: none !important; }
 }
@@ -431,6 +438,7 @@ window.addEventListener('message', function(event) {
         <div class="footer-heen">
           <label class="heen-lbl">Heen en weer</label>
           <textarea id="heen-en-weer" class="heen-tekstvak" placeholder="Bericht aan ouders…" rows="3"></textarea>
+          <div id="heen-print-tekst" class="heen-print-tekst" style="display:none;white-space:pre-wrap;font-size:12px;min-height:60px;"></div>
         </div>
         <div class="footer-handtek">Handtekening ouder</div>
       </div>
@@ -511,6 +519,7 @@ window.addEventListener('message', function(event) {
       <div class="plan56-hw-blok">
         <div class="plan56-hw-label">Heen en weer</div>
         <textarea id="heen-en-weer-hoog" class="plan56-hw-tekstvak" placeholder="Bericht aan ouders…" rows="3"></textarea>
+        <div id="heen-print-tekst-hoog" class="heen-print-tekst" style="display:none;white-space:pre-wrap;font-size:10px;flex:1;"></div>
       </div>
       <div class="plan-handtek">Handtekening ouder</div>
     </div>
@@ -778,6 +787,60 @@ function getDagData(dk, offset, di) {
 }
 
 // ═══════════════════════════════════════════════════════════
+// FOTO HELPERS
+// ═══════════════════════════════════════════════════════════
+function comprimeerFoto(file, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var maxW = 320, maxH = 240;
+      var w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.75));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function voegUploadKnopToe(wrap, di, dagData) {
+  var label = document.createElement('label');
+  label.className = 'foto-upload-btn btn-add';
+  label.style.cssText = 'display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:var(--blue);padding:3px 7px;border:1px dashed var(--blue);border-radius:5px;background:transparent;width:100%;justify-content:center;box-sizing:border-box;';
+  label.innerHTML = '📷 Foto toevoegen';
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
+  inp.onchange = function(e) {
+    var f = e.target.files[0]; if (!f) return;
+    comprimeerFoto(f, function(dataUrl) {
+      dagData.foto = dataUrl;
+      wrap.innerHTML = '';
+      var imgEl = document.createElement('img');
+      imgEl.src = dataUrl;
+      imgEl.className = 'foto-img';
+      imgEl.style.cssText = 'width:100%;max-height:120px;object-fit:cover;border-radius:5px;border:1px solid #ddd;display:block;cursor:pointer;';
+      imgEl.title = 'Klik om foto te verwijderen';
+      imgEl.onclick = function() {
+        if (!confirm('Foto verwijderen?')) return;
+        dagData.foto = null;
+        wrap.innerHTML = '';
+        voegUploadKnopToe(wrap, di, dagData);
+        autoSave();
+      };
+      wrap.appendChild(imgEl);
+      autoSave();
+    });
+  };
+  label.appendChild(inp);
+  wrap.appendChild(label);
+}
+
+// ═══════════════════════════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
@@ -792,22 +855,32 @@ function syncHeenEnWeer() {
   var ta = document.getElementById('heen-en-weer');
   if (!ta) return;
   ta.value = wd.heenEnWeer || '';
+  // Spiegeldiv voorzijde bijwerken
+  var printDiv = document.getElementById('heen-print-tekst');
+  if (printDiv) printDiv.textContent = wd.heenEnWeer || '';
   ta.oninput = function(e) {
     wd.heenEnWeer = e.target.value;
+    if (printDiv) printDiv.textContent = e.target.value;
     var hwT = document.querySelector('.plan-hw-tekst');
     if (hwT) hwT.textContent = e.target.value;
-    // Sync naar achterzijde DK5-6 textarea
+    // Sync naar achterzijde DK5-6 textarea en spiegeldiv
     var taHoog = document.getElementById('heen-en-weer-hoog');
     if (taHoog) taHoog.value = e.target.value;
+    var printDivHoog = document.getElementById('heen-print-tekst-hoog');
+    if (printDivHoog) printDivHoog.textContent = e.target.value;
     autoSave();
   };
   // Sync ook de DK5-6 achterzijde textarea bij laden
   var taHoog = document.getElementById('heen-en-weer-hoog');
+  var printDivHoog = document.getElementById('heen-print-tekst-hoog');
   if (taHoog) {
     taHoog.value = wd.heenEnWeer || '';
+    if (printDivHoog) printDivHoog.textContent = wd.heenEnWeer || '';
     taHoog.oninput = function(e) {
       wd.heenEnWeer = e.target.value;
       ta.value = e.target.value;
+      if (printDiv) printDiv.textContent = e.target.value;
+      if (printDivHoog) printDivHoog.textContent = e.target.value;
       var hwT = document.querySelector('.plan-hw-tekst');
       if (hwT) hwT.textContent = e.target.value;
       autoSave();
@@ -937,6 +1010,33 @@ function renderAgenda() {
     tekstVak.onchange = function(e) { dd.denkTekst = e.target.value; autoSave(); };
     denkKol.appendChild(tekstVak);
     denkKol.appendChild(tellerDiv);
+
+    // Foto-frame
+    (function(diIdx, dagData) {
+      var fotoWrap = document.createElement('div');
+      fotoWrap.className = 'foto-frame';
+      fotoWrap.style.cssText = 'margin-top:6px;position:relative;';
+
+      if (dagData.foto) {
+        // Toon foto
+        var imgEl = document.createElement('img');
+        imgEl.src = dagData.foto;
+        imgEl.className = 'foto-img';
+        imgEl.style.cssText = 'width:100%;max-height:120px;object-fit:cover;border-radius:5px;border:1px solid #ddd;display:block;cursor:pointer;';
+        imgEl.title = 'Klik om foto te verwijderen';
+        imgEl.onclick = function() {
+          if (!confirm('Foto verwijderen?')) return;
+          dagData.foto = null;
+          fotoWrap.innerHTML = '';
+          voegUploadKnopToe(fotoWrap, diIdx, dagData);
+          autoSave();
+        };
+        fotoWrap.appendChild(imgEl);
+      } else {
+        voegUploadKnopToe(fotoWrap, diIdx, dagData);
+      }
+      denkKol.appendChild(fotoWrap);
+    })(di, dd);
 
 
     body.appendChild(denkKol);
@@ -1106,12 +1206,19 @@ function toonMsg(msg, isErr) {
 // ═══════════════════════════════════════════════════════════
 // EVENTS
 // ═══════════════════════════════════════════════════════════
-document.getElementById('dk-select').onchange = function(e) {
-  currentDK = +e.target.value; renderAgenda();
+function laadEnRenderWeek() {
+  renderAgenda();
   loadKlasInstellingen(currentDK).then(function(v){ if (v) renderAgenda(); });
+  var wk = weekKey(currentDK, weekOffset);
+  loadFromSP(currentDK, wk).then(function(spData) {
+    if (spData) { agendaData[wk] = spData; saveLocal(); renderAgenda(); }
+  });
+}
+document.getElementById('dk-select').onchange = function(e) {
+  currentDK = +e.target.value; laadEnRenderWeek();
 };
-document.getElementById('prev-week').onclick = function() { weekOffset--; renderAgenda(); };
-document.getElementById('next-week').onclick = function() { weekOffset++; renderAgenda(); };
+document.getElementById('prev-week').onclick = function() { weekOffset--; laadEnRenderWeek(); };
+document.getElementById('next-week').onclick = function() { weekOffset++; laadEnRenderWeek(); };
 document.getElementById('btn-save').onclick = opslaan;
 document.getElementById('btn-print').onclick = function() {
   document.querySelectorAll('.denk-tekst').forEach(function(el) {
@@ -1149,6 +1256,16 @@ window.addEventListener('DOMContentLoaded', function() {
   boot().then(function() {
     renderAgenda();
     loadKlasInstellingen(currentDK).then(function(v){ if (v) renderAgenda(); });
+    // Laad weekdata van SharePoint (zodat checkboxen en andere waarden
+    // ook zichtbaar zijn als localStorage leeg is of op ander apparaat)
+    var wk = weekKey(currentDK, weekOffset);
+    loadFromSP(currentDK, wk).then(function(spData) {
+      if (spData) {
+        agendaData[wk] = spData;
+        saveLocal();
+        renderAgenda();
+      }
+    });
   });
 });
 
